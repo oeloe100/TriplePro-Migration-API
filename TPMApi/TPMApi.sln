@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30104.148
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TPMApi", "TPMApi\TPMApi.csproj", "{7FBD9666-80F8-49C2-9C25-03F5E09D7055}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7FBD9666-80F8-49C2-9C25-03F5E09D7055}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7FBD9666-80F8-49C2-9C25-03F5E09D7055}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7FBD9666-80F8-49C2-9C25-03F5E09D7055}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7FBD9666-80F8-49C2-9C25-03F5E09D7055}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {CC93F1EF-32B6-4962-AAD9-D0B63C422483}
+	EndGlobalSection
+EndGlobal
