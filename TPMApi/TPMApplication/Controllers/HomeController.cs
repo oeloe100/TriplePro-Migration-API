@@ -6,12 +6,10 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using TPMApi.Models;
-using Microsoft.AspNetCore.Authorization;
+using TPMApplication.Models;
 
-namespace TPMApi.Controllers
+namespace TPMApplication.Controllers
 {
-    [AllowAnonymous]
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
@@ -22,6 +20,11 @@ namespace TPMApi.Controllers
         }
 
         public IActionResult Index()
+        {
+            return View();
+        }
+
+        public IActionResult Privacy()
         {
             return View();
         }
