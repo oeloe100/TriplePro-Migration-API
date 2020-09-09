@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
@@ -6,15 +5,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using System.Security.Cryptography.X509Certificates;
+using System;
 using System.Text;
-using TPMApi.Controllers;
 using TPMApi.Data;
 using TPMApi.Middelware;
-using TPMApi.Models;
-using TPMApi.TokenProvider;
 
 namespace TPMApi
 {
@@ -33,8 +28,26 @@ namespace TPMApi
                 options.UseSqlServer(
                     Configuration.GetConnectionString("TPMAConnection")));
 
-            services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
-                .AddEntityFrameworkStores<ApplicationDbContext>();
+            services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = false)
+            .AddEntityFrameworkStores<ApplicationDbContext>();
+
+            services.Configure<IdentityOptions>(options =>
+            {
+                //password setttings
+                options.Password.RequiredLength = 8;
+                options.Password.RequireLowercase = false;
+                options.Password.RequireUppercase = true;
+                options.Password.RequiredUniqueChars = 2;
+                options.Password.RequireUppercase = true;
+
+                // Lockout settings.
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+                options.Lockout.MaxFailedAccessAttempts = 3;
+                options.Lockout.AllowedForNewUsers = true;
+
+                //User settings
+                options.SignIn.RequireConfirmedEmail = false;
+            });
 
             services.AddTokenAuthentication(Configuration);
 
@@ -55,30 +68,12 @@ namespace TPMApi
                 app.UseExceptionHandler("/Home/Error");
                 app.UseHsts();
             }
+
             app.UseHttpsRedirection();
             app.UseStaticFiles();
 
-            //--------------------------------------//
-            /*
-            var siginKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes("this_is_a_secret_key"));
-
-            var options = new TokenProvider.TokenOptions()
-            {
-                Audiance = "https://localhost:44339/",
-                Issuer = "https://localhost:44339/",
-                SigningCredentials = new SigningCredentials(siginKey, SecurityAlgorithms.HmacSha256),
-                ValidateIssuerSigningKey = false,
-                ValidateIssuer = true
-            };
-
-            app.UseMiddleware<TokenProviderMiddelware>(Options.Create(options));
-            */
-            //--------------------------------------//
-
             app.UseRouting();
-
             app.UseAuthentication();
-
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>

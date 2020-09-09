@@ -1,13 +1,8 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace TPMApi.Middelware
 {
@@ -17,23 +12,23 @@ namespace TPMApi.Middelware
         {
             var secret = config.GetSection("JwtConfig").GetSection("secret").Value;
 
-            var key = Encoding.ASCII.GetBytes(secret);
-            services.AddAuthentication(x =>
+            services.AddAuthentication(options =>
             {
-                x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultAuthenticateScheme = "JwtBearer";
+                options.DefaultChallengeScheme = "JwtBearer";
             })
-            .AddJwtBearer(x =>
-            {
-                x.TokenValidationParameters = new TokenValidationParameters
+                .AddJwtBearer("JwtBearer", options =>
                 {
-                    IssuerSigningKey = new SymmetricSecurityKey(key),
-                    ValidateIssuer = false,
-                    ValidateAudience = false,
-                    //ValidIssuer = "",
-                    //ValidAudience = ""
-                };
-            });
+                    options.TokenValidationParameters = new TokenValidationParameters()
+                    {
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret)),
+                        ValidateIssuer = false,
+                        ValidateAudience = false,
+                        ValidateLifetime = true,
+                        ClockSkew = TimeSpan.FromMinutes(5)
+                    };
+                });
 
             return services;
         }
