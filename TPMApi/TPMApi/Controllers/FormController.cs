@@ -12,5 +12,10 @@ namespace TPMApi.Controllers
         {
             return PartialView("_LoginFormPartial");
         }
+
+        public IActionResult RegisterPartial(string viewName)
+        {
+            return PartialView("_RegisterFormPartial");
+        }
     }
 }

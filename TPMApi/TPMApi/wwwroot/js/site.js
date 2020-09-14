@@ -21,4 +21,10 @@ $(function () {
     $(".login-span").on("click", function () {
         $(".partialView-body").load("/Form/LoginPartial");
     });
+
+
+    $(".register-span").on("click", function () {
+
+        $(".partialView-body").load("/Form/RegisterPartial");
+    });
 });

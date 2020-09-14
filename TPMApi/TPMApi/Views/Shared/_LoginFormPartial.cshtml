@@ -1,13 +1,13 @@
 ﻿@model TPMApi.Models.LoginPoco
 
-<form class="login_form" asp-controller="Account" asp-action="Login" method="post">
-    <div class="main_login">
-        Email:
-        <input asp-for="Email" /> <br />
-    </div>
-    <div class="main_password">
-        Password:
-        <input asp-for="Password" /><br />
-    </div>
-    <button class="main_submit btn-danger" type="submit">Login</button>
-</form>
+    <form class="login_form" asp-controller="Account" asp-action="Login" method="post">
+        <div class="main_login">
+            Email:
+            <input asp-for="Email" /> <br />
+        </div>
+        <div class="main_password">
+            Password:
+            <input asp-for="Password" /><br />
+        </div>
+        <button class="main_submit btn-danger" type="submit">Login</button>
+    </form>

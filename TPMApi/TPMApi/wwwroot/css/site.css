@@ -43,6 +43,10 @@ html {
   }
 }
 
+header{
+    display: grid;
+}
+
 .border-top {
   border-top: 1px solid #e5e5e5;
 }
@@ -57,6 +61,7 @@ html {
 button.accept-policy {
   font-size: 1rem;
   line-height: inherit;
+  line-height: inherit;
 }
 
 /* Sticky footer styles
@@ -70,10 +75,6 @@ body {
     /* Margin bottom by footer height */
     margin-bottom: 60px;
 }
-header{
-    position: absolute;
-    width: 90%;
-}
 .footer {
   position: absolute;
   bottom: 0;
@@ -85,21 +86,39 @@ header{
 
 /*----------------------------*/
 
-.pb-3 {
-    display: inline-block;
-    float: right;
-    width: 100%;
+.card-body{
+    padding-top: 50px;
 }
-.login_form {
+
+.logo-container {
+    width: 550px;
+    margin: 0 auto;
+}
+
+.pb-3 {
+    padding-top: 50px;
+}
+
+@media only screen and (max-width: 870px) {
+    .logo-container {
+        width: 350px;
+    }
+
+    .company-logo{
+        width: 350px !important;
+    }
+}
+
+.login_form,
+.register-form{
     width: 250px;
     margin: 0 auto;
     padding-top: 10px;
 }
 
 .color-block {
-    height: 100vh;
+    /*height: 100vh;*/
     background-color: #4A86E8;
-    position: fixed;
     z-index: -1;
 }
 .main-header {
@@ -110,11 +129,9 @@ header{
 }
 .welcome-messages {
     font-size: revert;
-    margin: 0px 220px;
-    padding-top: 285px;
+    margin: 0px 185px;
+    padding-top: 20px;
     color: white;
-    position: absolute;
-    margin-top: 65px;
 }
 
 .cl-wrapper {
@@ -130,13 +147,20 @@ header{
 .redirect-url {
     display: grid !important;
 }
-.main_submit {
+.main_submit,
+.woo-submit,
+.afosto-submit{
     width: 120px;
     margin: 0 auto;
     display: block;
     border: 0px;
     color: white;
     padding: 5px;
+}
+
+.woo-submit,
+.afosto-submit {
+    background-color: #11283C;
 }
 
 .navbar-collapse.collapse.d-sm-inline-flex.flex-sm-row-reverse {
@@ -179,3 +203,7 @@ header{
     .register-span:hover {
         background-color: #dc3545;
     }
+
+.faa-container{
+    padding: 0 80px;
+}
