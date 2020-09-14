@@ -1,23 +1,73 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Collections.Generic;
+using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
 using TPMApi.Models;
+using WooCommerceNET;
+using WooCommerceNET.WooCommerce;
+using WooCommerceNET.WooCommerce.v3;
+using WooCommerceNET.WooCommerce.v3.Extension;
 
 namespace TPMApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class WooController : ControllerBase
     {
-        public IActionResult GetProducts(AuthorizationModel model)
+        private readonly UserManager<IdentityUser> _userManager;
+
+        public WooController(
+            UserManager<IdentityUser> userManager)
         {
-            if (!ModelState.IsValid)
+            _userManager = userManager;
+        }
+
+        // POST: api/Woo
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Post([FromForm] WooAccessForm form)
+        {
+            if (ModelState.IsValid)
             {
-                return BadRequest();
+                var list = new List<string>();
+                list.Add(form.ClientKey);
+                list.Add(form.ClientSecret);
+                list.Add(form.CallbackUrl);
+
+                try
+                {
+                    RestAPI restApi = new RestAPI("https://www.hetsteigerhouthuis.nl/wp-json/wc/v3/",
+                        form.ClientKey,
+                        form.ClientSecret,
+                        requestFilter : RequestFilter);
+
+                    WCObject wcObject = new WCObject(restApi);
+
+                    var products = await wcObject.Product.GetAll(new Dictionary<string, string>() 
+                    {
+                        { "per_page", "50" }
+                    });
+
+                    return Ok(products);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    Console.WriteLine(ex.StackTrace);
+
+                    return BadRequest(ex);
+                }
             }
 
-            throw new NotImplementedException();
+            return BadRequest("Modelstate is not valid");
+        }
+
+        private void RequestFilter(HttpWebRequest request)
+        {
+            request.UserAgent = "Woocommerce.NET";
         }
     }
 }

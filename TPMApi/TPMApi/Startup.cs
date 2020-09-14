@@ -5,11 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.IdentityModel.Tokens;
 using System;
-using System.Text;
 using TPMApi.Data;
-using TPMApi.Middelware;
 
 namespace TPMApi
 {
@@ -28,7 +25,7 @@ namespace TPMApi
                 options.UseSqlServer(
                     Configuration.GetConnectionString("TPMAConnection")));
 
-            services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = false)
+            services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
             .AddEntityFrameworkStores<ApplicationDbContext>();
 
             services.Configure<IdentityOptions>(options =>
@@ -49,7 +46,11 @@ namespace TPMApi
                 options.SignIn.RequireConfirmedEmail = false;
             });
 
-            services.AddTokenAuthentication(Configuration);
+            //For token based authentiation. Jwt authentication.
+            //services.AddTokenAuthentication(Configuration);
+
+            //Cookie based authentication (out of the box)
+            services.AddAuthentication();
 
             services.AddControllersWithViews();
             services.AddRazorPages();
@@ -69,7 +70,9 @@ namespace TPMApi
                 app.UseHsts();
             }
 
-            app.UseHttpsRedirection();
+            //enable in production
+            //app.UseHttpsRedirection();
+
             app.UseStaticFiles();
 
             app.UseRouting();

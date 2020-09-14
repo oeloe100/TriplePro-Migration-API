@@ -8,6 +8,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using TPMApi.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace TPMApi.Controllers
 {
@@ -16,8 +19,7 @@ namespace TPMApi.Controllers
     {
         private readonly ILogger<HomeController> _logger;
 
-        public HomeController(
-            ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger)
         {
             _logger = logger;
         }

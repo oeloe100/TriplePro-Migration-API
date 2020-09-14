@@ -1,7 +1,9 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
-using System;
 using System.Text;
 
 namespace TPMApi.Middelware
@@ -16,6 +18,7 @@ namespace TPMApi.Middelware
             {
                 options.DefaultAuthenticateScheme = "JwtBearer";
                 options.DefaultChallengeScheme = "JwtBearer";
+                options.DefaultSignInScheme = "JwtBearer";
             })
                 .AddJwtBearer("JwtBearer", options =>
                 {
@@ -25,8 +28,7 @@ namespace TPMApi.Middelware
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret)),
                         ValidateIssuer = false,
                         ValidateAudience = false,
-                        ValidateLifetime = true,
-                        ClockSkew = TimeSpan.FromMinutes(5)
+                        ValidateLifetime = false,
                     };
                 });
 

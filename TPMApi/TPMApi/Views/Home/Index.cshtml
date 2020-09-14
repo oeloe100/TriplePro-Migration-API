@@ -2,20 +2,38 @@
     ViewData["Title"] = "Home Page";
 }
 
-    <form id="login_form" method="post" action="api/token" enctype="application/x-www-form-urlencoded">
-        <div>
-            <label for="Password">Username</label>
+    <div class="main-div">
+        @if (!User.Identity.IsAuthenticated)
+        {
+        <div class="card-body center-block">
+            <div class="login-vs-password">
+                <span class="login-span">Login</span>
+                <span class="register-span">Register</span>
+            </div>
+
+            <div class="partialView-body"></div>
         </div>
-        <div>
-            <input name="username" type="text" />
+        }
+        else
+        {
+        <div class="card-body center-block">
+            <div class="access-form-wrapper">
+                <form id="woo-form" method="post">
+                    <div class="client-secret">
+                        Key:
+                        <input name="ClientKey" /><br />
+                    </div>
+                    <div class="client-id">
+                        Secret:
+                        <input name="ClientSecret" /><br />
+                    </div>
+                    <div class="redirect-url">
+                        Url:
+                        <input name="CallbackUrl" /><br />
+                    </div>
+                    <button class="woo-submit" type="button">Submit</button>
+                </form>
+            </div>
         </div>
-        <div>
-            <label for="Password">Password</label>
-        </div>
-        <div>
-            <input name="password" type="text" />
-        </div>
-        <div>
-            <input type="submit" value="submit" />
-        </div>
-    </form>
+        }
+    </div>
