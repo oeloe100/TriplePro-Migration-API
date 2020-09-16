@@ -32,11 +32,6 @@ namespace TPMApi.Controllers
         {
             if (ModelState.IsValid)
             {
-                var list = new List<string>();
-                list.Add(form.ClientKey);
-                list.Add(form.ClientSecret);
-                list.Add(form.CallbackUrl);
-
                 try
                 {
                     RestAPI restApi = new RestAPI("https://www.hetsteigerhouthuis.nl/wp-json/wc/v3/",

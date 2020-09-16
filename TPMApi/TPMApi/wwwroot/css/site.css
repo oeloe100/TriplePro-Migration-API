@@ -88,6 +88,7 @@ body {
 
 .card-body{
     padding-top: 50px;
+    margin-top: 30px;
 }
 
 .logo-container {
@@ -195,9 +196,13 @@ body {
     display: inline-block;
     text-align: center;
     padding: 7px 0px;
-    cursor: pointer;
     background-color: #4a86e8;
 }
+
+    .register-span,
+    .faa-click {
+        cursor: pointer;
+    }
 
     .login-span:hover,
     .register-span:hover {

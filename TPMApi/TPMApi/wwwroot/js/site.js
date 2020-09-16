@@ -7,6 +7,8 @@ $(function () {
     $(".woo-submit").on("click", function () {
         var fData = $("#woo-form").serialize();
 
+        console.log('trigger');
+
         $.ajax({
             type: 'POST',
             url: '/api/woo',
@@ -26,5 +28,18 @@ $(function () {
     $(".register-span").on("click", function () {
 
         $(".partialView-body").load("/Form/RegisterPartial");
+    });
+
+    $(".faa-click").on("click", function () {
+        if (!$(".fa-sync").hasClass("fa-spin")) {
+            $(".fa-sync").addClass("fa-spin");
+        }
+        else if ($(".fa-sync").hasClass("fa-spin")) {
+            $(".fa-sync").removeClass("fa-spin");
+        }
+    });
+
+    $(document).ready(function () {
+        $('[data-toggle="tooltip"]').tooltip();
     });
 });

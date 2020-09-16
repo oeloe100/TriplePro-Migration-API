@@ -48,7 +48,6 @@ namespace TPMApi.Controllers
                 }
             }
 
-            //test
             return Redirect("~/");
         }
 

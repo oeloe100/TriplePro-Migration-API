@@ -20,15 +20,18 @@
         {
         <div class="card-body center-block container">
             <div class="row" style="margin: 0px 50px;">
-                <div class="col">
+                <div class="col" style="padding-top: 25px;">
                     @await Html.PartialAsync("_WooForm")
                 </div>
 
-                <div class="fa-10x faa-container">
-                    <i class="fas fa-sync fa-spin"></i>
+                <div class="sync-process-box">
+                    <!--<a href="#" data-toggle="tooltip" title="Click the sync icon below to start the process">info</a>-->
+                    <div class="fa-8x faa-container faa-click" data-toggle="tooltip" title="Click HERE to start the migration">
+                        <i class="fas fa-sync"></i>
+                    </div>
                 </div>
 
-                <div class="col">
+                <div class="col" style="padding-top: 25px;">
                     @await Html.PartialAsync("_AfostoForm")
                 </div>
             </div>
