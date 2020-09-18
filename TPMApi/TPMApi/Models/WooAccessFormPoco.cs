@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace TPMApi.Models
 {
-    public class WooAccessForm
+    public class WooAccessFormPoco
     {
         public string ClientSecret { get; set; }
         public string ClientKey { get; set; }

@@ -1,6 +1,6 @@
-﻿@model TPMApi.Models.RegisterPoco
+﻿@model TPMApi.Models.RegisterModelPoco
 
-    <form class="register-form" asp-controller="Account" asp-action="Register" method="post">
+    <form class="register-form" asp-controller="Register" asp-action="OnRegister" method="post">
         <div class="main_login">
             Email:
             <input asp-for="Email" /> <br />
@@ -11,7 +11,7 @@
         </div>
         <div class="main_password">
             Confirm Password:
-            <input asp-for="Password" /> <br />
+            <input asp-for="ConfirmPassword" /> <br />
         </div>
         <button class="main_submit btn-danger" type="submit">Register</button>
     </form>

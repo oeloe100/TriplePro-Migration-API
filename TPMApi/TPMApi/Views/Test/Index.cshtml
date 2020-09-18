@@ -1,5 +1,11 @@
 ﻿
-<form id="afosto-form" method="post">
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<form id="afosto-form" asp-action="Index" asp-controller="Test" method="post">
     <div class="client-secret">
         Key:
         <input type="password" name="ClientId" /><br />

@@ -5,10 +5,11 @@ using System.Threading.Tasks;
 
 namespace TPMApi.Models
 {
-    public class AuthorizationModel
+    public class AuthorizationPoco
     {
         public string ConsumerKey { get; set; }
         public string ConsumerSecret { get; set; }
         public string CallbackUrl { get; set; }
+        public string ServerUrl { get; set; }
     }
 }

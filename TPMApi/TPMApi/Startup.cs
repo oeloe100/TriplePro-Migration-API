@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -31,8 +32,12 @@ namespace TPMApi
             services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
             .AddEntityFrameworkStores<ApplicationDbContext>();
 
+            services.AddSession();
+
             services.AddTransient<IEmailSender, EmailSender>();
             services.Configure<AuthMessageSenderOptions>(Configuration);
+
+            services.Configure<AuthorizationPoco>(Configuration.GetSection("Afosto"));
 
             services.Configure<IdentityOptions>(options =>
             {
@@ -50,6 +55,18 @@ namespace TPMApi
 
                 //User settings
                 options.SignIn.RequireConfirmedEmail = false;
+            });
+
+            services.AddCors(options =>
+            {
+                options.AddPolicy(name: "DefaultPolicy",
+                    builder =>
+                    {
+                        builder.WithOrigins("https://localhost:44338")
+                                .AllowAnyHeader()
+                                .AllowAnyMethod()
+                                .AllowAnyOrigin();
+                    });
             });
 
             //For token based authentiation. Jwt authentication.
@@ -77,19 +94,24 @@ namespace TPMApi
             }
 
             //enable in production
-            //app.UseHttpsRedirection();
+            app.UseHttpsRedirection();
 
             app.UseStaticFiles();
 
             app.UseRouting();
+            app.UseCors(policyName: "DefaultPolicy");
+
             app.UseAuthentication();
             app.UseAuthorization();
+
+            app.UseSession();
 
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute(
                     name: "default",
                     pattern: "{controller=Home}/{action=Index}/{id?}");
+
                 endpoints.MapRazorPages();
             });
         }

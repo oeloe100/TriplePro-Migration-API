@@ -28,7 +28,7 @@ namespace TPMApi.Controllers
         // POST: api/Woo
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Post([FromForm] WooAccessForm form)
+        public async Task<IActionResult> Post([FromForm] WooAccessFormPoco form)
         {
             if (ModelState.IsValid)
             {

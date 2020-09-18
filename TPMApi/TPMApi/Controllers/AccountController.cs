@@ -30,6 +30,11 @@ namespace TPMApi.Controllers
             return View();
         }
 
+        public IActionResult EmailConfirmation()
+        {
+            return View();
+        }
+
         public async Task<IActionResult> Login(LoginPoco login)
         {
             if (ModelState.IsValid)

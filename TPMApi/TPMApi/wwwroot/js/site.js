@@ -3,22 +3,43 @@
 
 // Write your JavaScript code.
 
-$(function () {
-    $(".woo-submit").on("click", function () {
-        var fData = $("#woo-form").serialize();
+$(".woo-submit").on("click", function () {
+    var fData = $("#woo-form").serialize();
 
-        console.log('trigger');
+    console.log('Woo-Submit started');
 
-        $.ajax({
-            type: 'POST',
-            url: '/api/woo',
-            data: fData,
-            processData: false,
-            contentType: 'application/x-www-form-urlencoded; charset=UTF-8'
-        }).done(function (result) {
-            console.log(result);
-        });
+    $.ajax({
+        type: 'POST',
+        url: '/api/woo',
+        data: fData,
+        processData: false,
+        contentType: 'application/x-www-form-urlencoded; charset=UTF-8'
+    }).done(function (result) {
+        console.log(result);
     });
+});
+
+$(".afosto-submit").on("click", function () {
+    var fData = $("#afosto-form").serialize();
+
+    console.log('afosto-Submit started');
+
+    $.ajax({
+        type: 'POST',
+        url: '/Test/Index',
+        data: fData,
+        processData: false,
+        beforeSend: function (xhr) {
+            xhr.setRequestHeader("XSRF-TOKEN",
+                $('input:hidden[name="__RequestVerificationToken"]').val());
+        },
+        contentType: 'application/x-www-form-urlencoded; charset=UTF-8'
+    }).done(function (result) {
+        console.log(result);
+    });
+});
+
+$(function () {
 
     $(".login-span").on("click", function () {
         $(".partialView-body").load("/Form/LoginPartial");
