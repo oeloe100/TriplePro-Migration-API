@@ -1,23 +1,21 @@
-﻿using AutoMapper.Configuration;
-using Microsoft.AspNetCore.Components;
-using Microsoft.Extensions.Options;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
-using TPMApi.Helpers;
-using TPMApi.Models;
+using TPMApi.Clients;
 
 namespace TPMApi.Middelware
 {
-    public class AfostoAuthorizationMiddelware
+    public static class AfostoAuthorizationMiddelware
     {
+        //private static AfostoHttpClient _afostoHttpClient;
+
         public static string RequestAuthorizationUrl(
-            string serverUrl, 
-            string clientId, 
-            string callbackUrl, 
+            string serverUrl,
+            string clientId,
+            string callbackUrl,
             string state = null)
         {
             string callbackUri = new Uri(callbackUrl).ToString();
@@ -39,6 +37,39 @@ namespace TPMApi.Middelware
             }
 
             return stringBuilder.ToString();
+        }
+
+        public static async Task<string> AuthorizeClient(
+            string serverUrl,
+            string clientId,
+            string clientSecret,
+            string redirectUrl,
+            string code)
+        {
+            //instantiate with empty string. No Accesstoken to insert.
+            var afostoHttpClient = new AfostoHttpClient(null);
+
+            string requestUriString = string.Format("{0}/oauth/token", serverUrl);
+
+            var data = new FormUrlEncodedContent(new[]
+            {
+                new KeyValuePair<string, string>("client_id", clientId),
+                new KeyValuePair<string, string>("client_secret", clientSecret),
+                new KeyValuePair<string, string>("code", code),
+                new KeyValuePair<string, string>("grant_type", "authorization_code"),
+                new KeyValuePair<string, string>("redirect_uri", redirectUrl)
+            });
+
+            using (HttpResponseMessage resp = await afostoHttpClient.AfostoClient.PostAsync(requestUriString, data))
+            {
+                if (resp.IsSuccessStatusCode)
+                {
+                    var jsonResult = await resp.Content.ReadAsStringAsync();
+                    return jsonResult;
+                }
+
+                throw new Exception(resp.ReasonPhrase);
+            }
         }
     }
 }

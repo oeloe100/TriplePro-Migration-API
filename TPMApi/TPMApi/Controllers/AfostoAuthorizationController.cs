@@ -1,18 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using AutoMapper.Configuration;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using TPMApi.Helpers;
+using Newtonsoft.Json.Linq;
+using System;
+using System.Threading.Tasks;
 using TPMApi.Middelware;
 using TPMApi.Models;
 
 namespace TPMApi.Controllers
 {
+    [Authorize]
     public class AfostoAuthorizationController : Controller
     {
         private static IOptions<AuthorizationPoco> _config;
@@ -22,7 +20,7 @@ namespace TPMApi.Controllers
             _config = config;
         }
 
-        public IActionResult Authorize([FromForm]UserAccessPoco pocoModel)
+        public IActionResult Authenticate([FromForm]UserAccessPoco pocoModel)
         {
             if (ModelState.IsValid)
             {
@@ -33,9 +31,9 @@ namespace TPMApi.Controllers
                     HttpContext.Session.SetString("state", state.ToString());
 
                     var authLocation = AfostoAuthorizationMiddelware.RequestAuthorizationUrl(
-                        _config.Value.ServerUrl, 
-                        _config.Value.ConsumerKey, 
-                        _config.Value.CallbackUrl, 
+                        _config.Value.ServerUrl,
+                        _config.Value.ConsumerKey,
+                        _config.Value.CallbackUrl,
                         state.ToString());
 
                     return Redirect(authLocation);
@@ -50,9 +48,31 @@ namespace TPMApi.Controllers
         }
 
         [HttpGet]
-        public IActionResult ReceiveAccessToken(string code, string state)
+        public async Task<IActionResult> Callback(string code, string state)
         {
-            throw new NotImplementedException();
+            if (state == HttpContext.Session.GetString("state"))
+            {
+                try
+                {
+                    var response = await AfostoAuthorizationMiddelware.AuthorizeClient(
+                        _config.Value.ServerUrl,
+                        _config.Value.ConsumerKey,
+                        _config.Value.ConsumerSecret,
+                        _config.Value.CallbackUrl,
+                        code);
+
+                    JObject jRespObject = JObject.Parse(response);
+                    AfostoTokensPoco tPoco = jRespObject.ToObject<AfostoTokensPoco>();
+
+                    return Ok(tPoco);
+                }
+                catch (Exception ex)
+                {
+                    return BadRequest(ex);
+                }
+            }
+
+            return BadRequest();
         }
     }
 }

@@ -26,7 +26,7 @@ $(".afosto-submit").on("click", function () {
 
     $.ajax({
         type: 'POST',
-        url: '/Test/Index',
+        url: '/AfostoAuthorization/Authenticate',
         data: fData,
         processData: false,
         beforeSend: function (xhr) {

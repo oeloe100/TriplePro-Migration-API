@@ -18,6 +18,7 @@ namespace TPMApi.Controllers
     public class WooController : ControllerBase
     {
         private readonly UserManager<IdentityUser> _userManager;
+        private int _index = 1;
 
         public WooController(
             UserManager<IdentityUser> userManager)
@@ -43,10 +44,14 @@ namespace TPMApi.Controllers
 
                     var products = await wcObject.Product.GetAll(new Dictionary<string, string>() 
                     {
-                        { "per_page", "50" }
+                        { "per_page", "100" },
+                        { "page", "" + _index + "" }
                     });
 
-                    return Ok(products);
+                    if (products.Count >= 0)
+                    {
+                        _index ++;
+                    }
                 }
                 catch (Exception ex)
                 {
