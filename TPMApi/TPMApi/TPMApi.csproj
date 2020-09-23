@@ -28,4 +28,8 @@
     <PackageReference Include="WooCommerceNET" Version="0.8.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\TPMHelper\TPMHelper.csproj" />
+  </ItemGroup>
+
 </Project>

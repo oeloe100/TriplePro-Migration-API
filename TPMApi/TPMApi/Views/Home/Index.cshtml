@@ -20,20 +20,22 @@
         {
         <div class="card-body center-block container">
             <div class="row" style="margin: 0px 50px;">
-                <div class="col" style="padding-top: 25px;">
-                    @await Html.PartialAsync("_WooForm")
-                </div>
-
-                <div class="sync-process-box">
-                    <!--<a href="#" data-toggle="tooltip" title="Click the sync icon below to start the process">info</a>-->
-                    <div class="fa-8x faa-container faa-click" data-toggle="tooltip" title="Click HERE to start the migration">
-                        <i class="fas fa-sync"></i>
+                <form id="WTA-form" method="post">
+                    <div class="col" style="padding-top: 25px;">
+                        @await Html.PartialAsync("_WooForm")
                     </div>
-                </div>
 
-                <div class="col" style="padding-top: 25px;">
-                    @await Html.PartialAsync("_AfostoForm")
-                </div>
+                    <div class="sync-process-box">
+                        <!--<a href="#" data-toggle="tooltip" title="Click the sync icon below to start the process">info</a>-->
+                        <div class="fa-8x faa-container faa-click" data-toggle="tooltip" title="Click HERE to start the migration">
+                            <i class="fas fa-sync"></i>
+                        </div>
+                    </div>
+
+                    <div class="col" style="padding-top: 25px;">
+                        @await Html.PartialAsync("_AfostoForm")
+                    </div>
+                </form>
             </div>
         </div>
         }

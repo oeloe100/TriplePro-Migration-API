@@ -7,6 +7,9 @@ using System;
 using System.Threading.Tasks;
 using TPMApi.Middelware;
 using TPMApi.Models;
+using TPMApi.Services;
+using WooCommerceNET;
+using WooCommerceNET.WooCommerce.v3;
 
 namespace TPMApi.Controllers
 {
@@ -14,13 +17,14 @@ namespace TPMApi.Controllers
     public class AfostoAuthorizationController : Controller
     {
         private static IOptions<AuthorizationPoco> _config;
+        private static WCObject _wcObject;
 
         public AfostoAuthorizationController(IOptions<AuthorizationPoco> config)
         {
             _config = config;
         }
 
-        public IActionResult Authenticate([FromForm]UserAccessPoco pocoModel)
+        public IActionResult Authenticate([FromForm]WTAAccessPoco model)
         {
             if (ModelState.IsValid)
             {
@@ -36,7 +40,11 @@ namespace TPMApi.Controllers
                         _config.Value.CallbackUrl,
                         state.ToString());
 
-                    return Redirect(authLocation);
+                    _wcObject = WooConnect.WcObject(
+                        model.WooClientId, 
+                        model.WooClientSecret);
+
+                    return Ok(authLocation);
                 }
                 catch (Exception ex)
                 {
@@ -63,6 +71,8 @@ namespace TPMApi.Controllers
 
                     JObject jRespObject = JObject.Parse(response);
                     AfostoTokensPoco tPoco = jRespObject.ToObject<AfostoTokensPoco>();
+
+                    var test = _wcObject;
 
                     return Ok(tPoco);
                 }

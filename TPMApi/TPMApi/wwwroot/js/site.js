@@ -3,39 +3,17 @@
 
 // Write your JavaScript code.
 
-$(".woo-submit").on("click", function () {
-    var fData = $("#woo-form").serialize();
-
-    console.log('Woo-Submit started');
-
-    $.ajax({
-        type: 'POST',
-        url: '/api/woo',
-        data: fData,
-        processData: false,
-        contentType: 'application/x-www-form-urlencoded; charset=UTF-8'
-    }).done(function (result) {
-        console.log(result);
-    });
-});
-
-$(".afosto-submit").on("click", function () {
-    var fData = $("#afosto-form").serialize();
-
-    console.log('afosto-Submit started');
+$(".fa-sync").on("click", function () {
+    var fData = $("#WTA-form").serialize();
 
     $.ajax({
         type: 'POST',
         url: '/AfostoAuthorization/Authenticate',
         data: fData,
         processData: false,
-        beforeSend: function (xhr) {
-            xhr.setRequestHeader("XSRF-TOKEN",
-                $('input:hidden[name="__RequestVerificationToken"]').val());
-        },
         contentType: 'application/x-www-form-urlencoded; charset=UTF-8'
     }).done(function (result) {
-        console.log(result);
+        window.location.replace(result);
     });
 });
 
