@@ -1,4 +1,0 @@
-"https://app.afosto.com//oauth/authorize?client_id=iwkt4jzfjvwvjksytjk09rkaq65mkckq&redirect_uri=https%3a%2f%2flocalhost%3a44338%2ftoken&response_type=code&state=f1e95842-568e-44b2-a02f-58da7d77b481"
-
-id = iwkt4jzfjvwvjksytjk09rkaq65mkckq
-secret = j70js7k16ycno9yiyb14oaux5vpebhni

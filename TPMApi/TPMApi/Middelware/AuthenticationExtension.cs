@@ -10,6 +10,12 @@ namespace TPMApi.Middelware
 {
     public static class AuthenticationExtension
     {
+        /// <summary>
+        /// Custom Auth extension for API protection. Extension of Startup.cs
+        /// </summary>
+        /// <param name="services"></param>
+        /// <param name="config"></param>
+        /// <returns></returns>
         public static IServiceCollection AddTokenAuthentication(this IServiceCollection services, IConfiguration config)
         {
             var secret = config.GetSection("JwtConfig").GetSection("secret").Value;

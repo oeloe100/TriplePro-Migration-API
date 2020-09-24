@@ -1,8 +1,4 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Text.Json.Serialization;
 
 namespace TPMHelper.AfostoHelper.ProductModel
 {
@@ -16,5 +12,7 @@ namespace TPMHelper.AfostoHelper.ProductModel
         public string description { get; set; }
         [JsonProperty("seo")]
         public Seo Seo { get; set; }
+        [JsonProperty("meta_group")]
+        public MetaGroup MetaGroup { get; set; }
     }
 }

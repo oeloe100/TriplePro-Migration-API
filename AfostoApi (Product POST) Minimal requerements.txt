@@ -1,0 +1,58 @@
+{
+    "weight": 0,
+    "cost": 0,
+    "is_tracking_inventory": true,
+    "is_backorder_allowed": false,
+    "descriptors": [
+      {
+        "name": "test1",
+        "short_description": "test1",
+        "description": "<p>test</p>",
+        "seo": {
+          "title": "tafel-industrieel-douglas-set",
+          "description": "<p>Hout en staal staan bekend om hun stoere robuuste karakter. Het brengt een gezellige en warme sfeer in huis en daarbij maakt het uw terras ook helemaal af. Daarom is het nog steeds de trend van dit moment!!!</p>\n<p>Omdat iedereen zijn eigen wensen heeft, hebben wij geen voorraad en wordt alles op bestelling naar uw wens gemaakt.</p>\n",
+          "keywords": "Tafel Industrieel Douglas Set",
+          "robots": ""
+        },
+        "meta_group": {
+          "id": 1390
+        }
+      }
+    ],
+    "specifications": [],
+    "items": [
+      {
+        "ean": "1000000023238",
+        "sku": "test1",
+        "cost": 0,
+        "inventory": {
+          "total": 23,
+          "warehouses": [
+            {
+              "id": 1464,
+              "amount": 23,
+              "location": null
+            }
+          ]
+        },
+        "options": [],
+        "suffix": null,
+        "prices": [
+          {
+            "price_gross": 0,
+            "price": 0,
+            "original_price_gross": null,
+            "original_price": null,
+            "is_enabled": true,
+            "tax_class": {
+              "id": 2
+            },
+            "price_group": null
+          }
+        ]
+      }
+    ],
+    "images": [],
+    "collections": [],
+    "settings": null
+  }

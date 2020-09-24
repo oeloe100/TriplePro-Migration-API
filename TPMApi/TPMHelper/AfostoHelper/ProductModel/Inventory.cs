@@ -9,5 +9,7 @@ namespace TPMHelper.AfostoHelper.ProductModel
     {
         [JsonProperty("total")]
         public int? Total { get; set; } = 50;
+        [JsonProperty("warehouses")]
+        public Warehouses Warehouses { get; set; }
     }
 }

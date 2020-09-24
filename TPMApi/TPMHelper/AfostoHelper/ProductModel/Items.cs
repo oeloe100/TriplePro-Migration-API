@@ -21,5 +21,7 @@ namespace TPMHelper.AfostoHelper.ProductModel
         public string Suffix { get; set; }
         [JsonProperty("prices")]
         public Prices Prices { get; set; }
+        [JsonProperty("price_group")]
+        public PriceGroup PriceGroup { get; set; } = null;
     }
 }

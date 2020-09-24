@@ -23,6 +23,14 @@ namespace TPMApi.Services
             return Execute(Options.SendGridKey, subject, message, email);
         }
 
+        /// <summary>
+        /// Send Verification email after registration using SENDGRID
+        /// </summary>
+        /// <param name="apiKey"></param>
+        /// <param name="subject"></param>
+        /// <param name="message"></param>
+        /// <param name="email"></param>
+        /// <returns></returns>
         public Task Execute(string apiKey, string subject, string message, string email)
         {
             var client = new SendGridClient(apiKey);

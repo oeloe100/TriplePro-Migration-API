@@ -141,6 +141,11 @@ body {
     padding-top: 80px;
 }
 
+.WTA-form{
+    width: 100%;
+    display: flex;
+}
+
 .main_login,
 .main_password,
 .client-secret,
@@ -148,20 +153,13 @@ body {
 .redirect-url {
     display: grid !important;
 }
-.main_submit,
-.woo-submit,
-.afosto-submit{
+.main_submit{
     width: 120px;
     margin: 0 auto;
     display: block;
     border: 0px;
     color: white;
     padding: 5px;
-}
-
-.woo-submit,
-.afosto-submit {
-    background-color: #11283C;
 }
 
 .navbar-collapse.collapse.d-sm-inline-flex.flex-sm-row-reverse {

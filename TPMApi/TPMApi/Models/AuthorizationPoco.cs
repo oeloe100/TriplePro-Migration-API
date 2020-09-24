@@ -10,6 +10,7 @@ namespace TPMApi.Models
         public string ConsumerKey { get; set; }
         public string ConsumerSecret { get; set; }
         public string CallbackUrl { get; set; }
-        public string ServerUrl { get; set; }
+        public string AppServerUrl { get; set; }
+        public string ApiServerUrl { get; set; }
     }
 }

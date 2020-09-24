@@ -29,6 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\TPMDataLibrary\TPMDataLibrary.csproj" />
     <ProjectReference Include="..\TPMHelper\TPMHelper.csproj" />
   </ItemGroup>
 

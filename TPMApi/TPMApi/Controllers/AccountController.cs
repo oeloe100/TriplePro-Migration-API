@@ -35,6 +35,11 @@ namespace TPMApi.Controllers
             return View();
         }
 
+        /// <summary>
+        /// Simple user login using .NET CORE Identity.
+        /// </summary>
+        /// <param name="login"></param>
+        /// <returns></returns>
         public async Task<IActionResult> Login(LoginPoco login)
         {
             if (ModelState.IsValid)
@@ -56,6 +61,10 @@ namespace TPMApi.Controllers
             return Redirect("~/");
         }
 
+        /// <summary>
+        /// Simple logout using .NET Core Identity
+        /// </summary>
+        /// <returns></returns>
         public async Task<IActionResult> Logout()
         {
             await _signinManager.SignOutAsync();

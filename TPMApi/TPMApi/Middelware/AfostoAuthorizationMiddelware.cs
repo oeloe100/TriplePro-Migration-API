@@ -12,6 +12,14 @@ namespace TPMApi.Middelware
     {
         //private static AfostoHttpClient _afostoHttpClient;
 
+        /// <summary>
+        /// Build afosto authorizaton Url
+        /// </summary>
+        /// <param name="serverUrl"></param>
+        /// <param name="clientId"></param>
+        /// <param name="callbackUrl"></param>
+        /// <param name="state"></param>
+        /// <returns></returns>
         public static string RequestAuthorizationUrl(
             string serverUrl,
             string clientId,
@@ -39,6 +47,15 @@ namespace TPMApi.Middelware
             return stringBuilder.ToString();
         }
 
+        /// <summary>
+        /// Authorize with token endpoint and receive accesstoken + refresh etc..
+        /// </summary>
+        /// <param name="serverUrl"></param>
+        /// <param name="clientId"></param>
+        /// <param name="clientSecret"></param>
+        /// <param name="redirectUrl"></param>
+        /// <param name="code"></param>
+        /// <returns></returns>
         public static async Task<string> AuthorizeClient(
             string serverUrl,
             string clientId,

@@ -19,16 +19,25 @@ namespace TPMApi.Clients
             Init();
         }
 
+        /// <summary>
+        /// Our respectable HTTP Client. Has afosto required headers (pagesize, page, bearer + Accesstoken)
+        /// </summary>
         private void Init()
         {
-            string api = "https://localhost:44338/";
+            string api = "https://localhost:5001/";
 
             AfostoClient = new HttpClient();
             AfostoClient.BaseAddress = new Uri(api);
             AfostoClient.DefaultRequestHeaders.Accept.Clear();
+            
             if (!string.IsNullOrEmpty(_AccessToken))
+            { 
                 AfostoClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", _AccessToken);
-            AfostoClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/x-www-form-urlencoded"));
+                AfostoClient.DefaultRequestHeaders.Add("page", "1");
+                AfostoClient.DefaultRequestHeaders.Add("pagesize", "50");
+            }
+
+            AfostoClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
     }
 }

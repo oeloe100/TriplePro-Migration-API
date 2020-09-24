@@ -30,10 +30,17 @@ namespace TPMApi.Controllers
             _userManager = userManager;
         }
 
+        /// <summary>
+        /// Create JWT Token
+        /// </summary>
+        /// <param name="username"></param>
+        /// <param name="password"></param>
+        /// <returns></returns>
         [Route("/token")]
         [HttpPost]
         public async Task<IActionResult> Create(string username, string password)
         {
+            ///are we who we say we are? yes generate token
             if (await IsValidUsernameAndPassword(username, password))
             {
                 return new ObjectResult(await GenerateToken(username));
@@ -44,12 +51,24 @@ namespace TPMApi.Controllers
             }
         }
 
+        /// <summary>
+        /// Verify user credentials
+        /// </summary>
+        /// <param name="username"></param>
+        /// <param name="password"></param>
+        /// <returns></returns>
         private async Task<bool> IsValidUsernameAndPassword(string username, string password)
         {
             var user = await _userManager.FindByEmailAsync(username);
             return await _userManager.CheckPasswordAsync(user, password);
         }
 
+        /// <summary>
+        /// Generate the actual token.
+        /// For more informatin check: https://jwt.io/
+        /// </summary>
+        /// <param name="username"></param>
+        /// <returns></returns>
         private async Task<dynamic> GenerateToken(string username)
         {
             var user = await _userManager.FindByEmailAsync(username);

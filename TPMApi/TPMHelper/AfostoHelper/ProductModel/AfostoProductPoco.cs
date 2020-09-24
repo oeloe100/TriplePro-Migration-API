@@ -8,7 +8,7 @@ namespace TPMHelper.AfostoHelper.ProductModel
     public class AfostoProductPoco
     {
         [JsonProperty("weight")]
-        public double Weight { get; set; }
+        public decimal? Weight { get; set; }
         [JsonProperty("cost")]
         public decimal Cost { get; set; }
         [JsonProperty("is_tracking_inventory")]
@@ -23,5 +23,9 @@ namespace TPMHelper.AfostoHelper.ProductModel
         public Items Items { get; set; }
         [JsonProperty("images")]
         public Images Images { get; set; }
+        [JsonProperty("collections")]
+        public Collections Collections { get; set; }
+        [JsonProperty("settings")]
+        public Settings Settings { get; set; }
     }
 }

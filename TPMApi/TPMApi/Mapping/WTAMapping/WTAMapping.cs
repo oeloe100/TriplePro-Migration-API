@@ -11,47 +11,39 @@ using WooCommerceNET.Base;
 using WooCommerceNET.WooCommerce.v3;
 
 
-namespace TPMApi.Mapping.WooCommerceToAfostoMapping
+namespace TPMApi.Mapping.WTAMapping
 {
     public class WTAMapping
     {
         private Product _product;
 
-        public JObject MappingData(List<Product> WooProducts)
+        public List<JObject> MappingData(List<Product> WooProducts)
         {
+            var productsAsJObject = new List<JObject>();
+
             for (var i = 0; i < WooProducts.Count; i++)
             {
                 _product = WooProducts[i];
 
                 var products = new AfostoProductPoco()
                 {
-                    Weight = 12000,
+                    Weight = _product.weight,
                     Cost = 0,
                     Is_Backorder_Allowed = _product.backorders_allowed,
                     Is_Tracking_Inventory = false,
                     Descriptors = SetDescriptors(),
                     Items = SetItems(),
-                    Specifications = Specifications()
+                    Images = null,
+                    Specifications = null,
                 };
 
-                var newTest = JsonConvert.SerializeObject(products);
-                JObject test = JObject.Parse(newTest);
+                var ProductAsjsonString = JsonConvert.SerializeObject(products);
+                JObject productAsJsonObject = JObject.Parse(ProductAsjsonString);
 
-                return test;
+                productsAsJObject.Add(productAsJsonObject);
             }
 
-            return null;
-        }
-
-        private Specifications Specifications()
-        {
-            var spec = new Specifications()
-            {
-                Key = _product.attributes[0].options[0],
-                Value = _product.attributes[0].name
-            };
-
-            return spec;
+            return productsAsJObject;
         }
 
         private Descriptors SetDescriptors()
@@ -61,6 +53,7 @@ namespace TPMApi.Mapping.WooCommerceToAfostoMapping
                 description = _product.description,
                 Name = _product.name,
                 Seo = SetSeo(),
+                MetaGroup = SetMetaGroup(),
                 Short_Description = _product.short_description
             };
 
@@ -80,6 +73,16 @@ namespace TPMApi.Mapping.WooCommerceToAfostoMapping
             return seo;
         }
 
+        private MetaGroup SetMetaGroup()
+        {
+            var metaGroup = new MetaGroup()
+            {
+                Id = 1390
+            };
+
+            return metaGroup;
+        }
+
         private Items SetItems()
         {
             var items = new Items()
@@ -87,10 +90,11 @@ namespace TPMApi.Mapping.WooCommerceToAfostoMapping
                 Ean = Convert.ToInt64(DateTime.Now.Ticks.ToString().Substring(0, 13)),
                 Sku = "",
                 Inventory = SetInventory(),
-                Suffix = "",
+                Suffix = null,
                 Cost = _product.regular_price,
-                Options = SetOptions(),
-                Prices = SetPrices()
+                Options = null,
+                Prices = SetPrices(),
+                PriceGroup = null
             };
 
             return items;
@@ -100,10 +104,22 @@ namespace TPMApi.Mapping.WooCommerceToAfostoMapping
         {
             var inventory = new Inventory()
             {
-                Total = 50
+                Total = 50,
+                Warehouses = SetWareHouses()
             };
 
             return inventory;
+        }
+
+        private Warehouses SetWareHouses()
+        {
+            var warehouses = new Warehouses()
+            {
+                Id = 1464,
+                Amount = 23,
+            };
+
+            return warehouses;
         }
 
         private Options SetOptions()

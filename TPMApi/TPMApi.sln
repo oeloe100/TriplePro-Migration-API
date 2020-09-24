@@ -5,7 +5,9 @@ VisualStudioVersion = 16.0.30104.148
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TPMApi", "TPMApi\TPMApi.csproj", "{8A70DDCC-94C0-4411-9E62-1B249DBFDF6C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TPMHelper", "TPMHelper\TPMHelper.csproj", "{D41A422D-B95C-40A0-A4A2-6D8DDE4EA215}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TPMHelper", "TPMHelper\TPMHelper.csproj", "{D41A422D-B95C-40A0-A4A2-6D8DDE4EA215}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TPMDataLibrary", "TPMDataLibrary\TPMDataLibrary.csproj", "{853BABFD-3BCE-49CB-ABC1-6D54B4933CD3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{D41A422D-B95C-40A0-A4A2-6D8DDE4EA215}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D41A422D-B95C-40A0-A4A2-6D8DDE4EA215}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D41A422D-B95C-40A0-A4A2-6D8DDE4EA215}.Release|Any CPU.Build.0 = Release|Any CPU
+		{853BABFD-3BCE-49CB-ABC1-6D54B4933CD3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{853BABFD-3BCE-49CB-ABC1-6D54B4933CD3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{853BABFD-3BCE-49CB-ABC1-6D54B4933CD3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{853BABFD-3BCE-49CB-ABC1-6D54B4933CD3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
