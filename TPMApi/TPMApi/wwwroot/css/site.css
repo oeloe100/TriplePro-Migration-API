@@ -150,6 +150,7 @@ body {
 .main_password,
 .client-secret,
 .client-id,
+.form-name,
 .redirect-url {
     display: grid !important;
 }

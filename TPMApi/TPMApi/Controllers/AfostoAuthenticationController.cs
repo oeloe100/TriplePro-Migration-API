@@ -1,10 +1,12 @@
 ﻿using AutoMapper.Configuration;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using TPMApi.Data.Context;
 using TPMApi.Mapping.WTAMapping;
@@ -16,15 +18,18 @@ using TPMDataLibrary.Models;
 namespace TPMApi.Controllers
 {
     [Authorize]
-    public class WTAController : Controller
+    public class AfostoAuthenticationController : Controller
     {
         private static IOptions<AuthorizationPoco> _config;
-        /*private static WCObject _wcObject;*/
+        private static UserManager<IdentityUser> _userManager;
         private static WTAMapping _wtaMapping;
 
-        public WTAController(IOptions<AuthorizationPoco> config)
+        public AfostoAuthenticationController(
+            IOptions<AuthorizationPoco> config,
+            UserManager<IdentityUser> userManager)
         {
             _config = config;
+            _userManager = userManager;
             _wtaMapping = new WTAMapping();
         }
 
@@ -34,7 +39,7 @@ namespace TPMApi.Controllers
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public IActionResult Authenticate([FromForm]WTAAccessPoco model)
+        public async Task<IActionResult> Authenticate([FromForm]AfostoAccessPoco model)
         {
             if (ModelState.IsValid)
             {
@@ -51,14 +56,37 @@ namespace TPMApi.Controllers
                         _config.Value.ConsumerKey,
                         _config.Value.CallbackUrl,
                         state.ToString());
+                    
+                    var user = await _userManager.GetUserAsync(User);
 
-                    /*
-                    _wcObject = WooConnect.WcObject(
-                        model.WooClientId,
-                        model.WooClientSecret);
-                        */
+                    //check if we already have existing records with this clientSecret and or name
+                    var containsRecords = AfostoDataProcessor.CompareAfostoSecretWithExistingRecords(
+                        model.AfostoClientSecret);
 
-                    return Ok(authLocation);
+                    if (!containsRecords)
+                    {
+                        //insert first afosto access data into db.
+                        AfostoAccessModel afostoAccessModel = new AfostoAccessModel()
+                        {
+                            UserId = user.Id,
+                            AfostoKey = model.AfostoClientId,
+                            AfostoSecret = model.AfostoClientSecret,
+                            Created_At = DateTime.UtcNow,
+                            Name = model.Name,
+                        };
+
+                        //Insert datamodel into database
+                        AfostoDataProcessor.InsertAccessData(afostoAccessModel);
+
+                        return Ok(authLocation);
+                    }
+
+                    //Now returning emtpy 200 OK response.
+                    //Next return the url to authenticate woocommerce client >
+                    //No need for redirect to afosto authentication. We already have data in database.
+                    //Edge case: if we wait to long bot access/refresh token will decline. Need to use new Id/Secret.
+                    return Ok();
+
                 }
                 catch (Exception ex)
                 {
@@ -97,8 +125,8 @@ namespace TPMApi.Controllers
                     //conver jobject to pocoModel for readability and accessibility
                     AfostoTokensPoco tPoco = jRespObject.ToObject<AfostoTokensPoco>();
 
-                    //Save accessdata to database.
-                    TokenProcessor.InsertToken(new AfostoAccessModel
+                    //Save access/refresh token to database. Db is being altered.
+                    AfostoDataProcessor.EditCallbackAccessData(new AfostoAccessModel
                     {
                         AccessToken = tPoco.AccessToken,
                         RefreshToken = tPoco.RefreshToken,
