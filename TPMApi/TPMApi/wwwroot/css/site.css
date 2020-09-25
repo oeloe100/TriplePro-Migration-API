@@ -95,6 +95,14 @@ body {
     width: 550px;
     margin: 0 auto;
 }
+.afosto-logo-container{
+    width: 110px;
+    margin: 0 auto;
+}
+.woo-logo-container {
+    width: 150px;
+    margin: 0 auto;
+}
 
 .pb-3 {
     padding-top: 50px;
@@ -210,4 +218,19 @@ body {
 
 .faa-container{
     padding: 0 80px;
+}
+
+.form-authorize {
+    width: 150px;
+    height: 40px;
+    display: block;
+    margin: 0 auto;
+    color: white;
+    background-color: #11283c;
+    border: none;
+}
+.form-input {
+    margin: 0 auto;
+    padding-top: 25px;
+    width: 500px;
 }

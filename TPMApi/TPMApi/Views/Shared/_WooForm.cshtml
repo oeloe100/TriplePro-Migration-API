@@ -1,9 +1,27 @@
-﻿
-    <div class="client-id">
-        Key:
-        <input type="password" name="WooClientId" /><br />
+﻿    
+    <div class="woo-logo-container">
+        <img class="woo-logo" src="~/Images/woologo.png" alt="WooCommerce Logo" width="150px;" />
     </div>
-    <div class="client-secret">
-        Secret:
-        <input type="password" name="WooClientSecret" /><br />
+
+    <div class="row" style="display: grid; margin: 0px 50px;">
+        <div class="col form-input">
+            <form class="woo-form" method="post">
+                <div class="form-name">
+                    Name:
+                    <input type="text" name="Name" /><br />
+                </div>
+                <div class="client-secret">
+                    Key:
+                    <input type="password" name="WooClientId" /><br />
+                </div>
+                <div class="client-id">
+                    Secret:
+                    <input type="password" name="WooClientSecret" /><br />
+                </div>
+            </form>
+        </div>
+
+        <div class="button-box">
+            <button type="submit" class="form-authorize">Authorize</button>
+        </div>
     </div>

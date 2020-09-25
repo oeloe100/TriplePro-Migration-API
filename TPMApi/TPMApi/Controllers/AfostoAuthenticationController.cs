@@ -81,11 +81,8 @@ namespace TPMApi.Controllers
                         return Ok(authLocation);
                     }
 
-                    //Now returning emtpy 200 OK response.
-                    //Next return the url to authenticate woocommerce client >
-                    //No need for redirect to afosto authentication. We already have data in database.
-                    //Edge case: if we wait to long bot access/refresh token will decline. Need to use new Id/Secret.
-                    return Ok();
+                    //We return the URL for WooCommerce Authentication
+                    return Ok("Https://" + this.Request.Host + "/WooCommerceAuthentication/Index");
 
                 }
                 catch (Exception ex)
