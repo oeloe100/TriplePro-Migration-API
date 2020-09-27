@@ -10,7 +10,7 @@ $(function () {
 });
 
 //in case of onclick no need to call in document.ready
-$(".form-authorize").on("click", function () {
+$(".afosto-form-authorize").on("click", function () {
     var fData = $(".afosto-form").serialize();
 
     $.ajax({
@@ -22,6 +22,30 @@ $(".form-authorize").on("click", function () {
         if (IsValidUrl(result)) {
             window.location.replace(result);
         }
+    });
+});
+
+$(".woo-form-authorize").on("click", function () {
+    var fData = $(".woo-form").serialize();
+
+    $.ajax({
+        type: 'POST',
+        url: '/WooCommerceAuthentication/Authenticate',
+        data: fData,
+        contentType: 'application/x-www-form-urlencoded; charset=UTF-8'
+    }).done(function (result) {
+        if (IsValidUrl(result)) {
+            window.location.replace(result);
+        }
+    });
+});
+
+$(".faa-click").on("click", function () {
+    $.ajax({
+        type: 'POST',
+        url: '/Migration/Start',
+    }).done(function (result) {
+        console.log(result);
     });
 });
 

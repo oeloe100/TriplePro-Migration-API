@@ -1,18 +1,18 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using TPMApi.Mapping.WTAMapping;
 using TPMApi.Middelware;
 using TPMApi.Models;
 using TPMApi.Services;
+using TPMDataLibrary.BusinessLogic;
 using WooCommerceNET.WooCommerce.v3;
 
 namespace TPMApi.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class MigrationController : ControllerBase
+    public class MigrationController : Controller
     {
         private static IOptions<AuthorizationPoco> _config;
         private static WTAMapping _wtaMapping;
@@ -24,8 +24,17 @@ namespace TPMApi.Controllers
             _wtaMapping = new WTAMapping();
         }
 
+        public IActionResult Index()
+        {
+            return View();
+        }
+
         public async Task Start()
         {
+            var wooAccessData = WooDataProcessor.GetLastAccessData();
+
+            Console.WriteLine();
+
             //properties now emtpy strings. Need to get data from Db. once implemented
             _wcObject = WooConnect.WcObject(
                         "",

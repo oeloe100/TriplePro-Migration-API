@@ -216,11 +216,17 @@ body {
         background-color: #dc3545;
     }
 
-.faa-container{
+.sync-process-box {
+    padding: 100px;
+}
+.faa-container {
     padding: 0 80px;
+    margin: 0 auto;
+    width: 288px;
 }
 
-.form-authorize {
+.woo-form-authorize,
+.afosto-form-authorize {
     width: 150px;
     height: 40px;
     display: block;
