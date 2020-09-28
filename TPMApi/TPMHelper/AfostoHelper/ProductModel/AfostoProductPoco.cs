@@ -10,22 +10,22 @@ namespace TPMHelper.AfostoHelper.ProductModel
         [JsonProperty("weight")]
         public decimal? Weight { get; set; }
         [JsonProperty("cost")]
-        public decimal Cost { get; set; }
+        public decimal? Cost { get; set; }
         [JsonProperty("is_tracking_inventory")]
         public bool? Is_Tracking_Inventory { get; set; } = true;
         [JsonProperty("is_backorder_allowed")]
         public bool? Is_Backorder_Allowed { get; set; } = false;
         [JsonProperty("descriptors")]
-        public Descriptors Descriptors { get; set; }
+        public List<Descriptors> Descriptors { get; set; }
         [JsonProperty("specification")]
-        public Specifications Specifications { get; set; }
+        public List<Specifications> Specifications { get; set; }
         [JsonProperty("items")]
-        public Items Items { get; set; }
+        public List<Items> Items { get; set; }
         [JsonProperty("images")]
-        public Images Images { get; set; }
+        public List<Images> Images { get; set; }
         [JsonProperty("collections")]
-        public Collections Collections { get; set; }
+        public List<Collections> Collections { get; set; }
         [JsonProperty("settings")]
-        public Settings Settings { get; set; }
+        public List<Settings> Settings { get; set; }
     }
 }

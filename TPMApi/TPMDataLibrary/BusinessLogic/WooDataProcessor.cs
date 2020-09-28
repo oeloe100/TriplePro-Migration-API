@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Text;
+using System.Threading.Tasks;
 using TPMApi.Models;
 using TPMDataLibrary.DataAccess;
 
@@ -39,6 +40,10 @@ namespace TPMDataLibrary.BusinessLogic
             }
         }
 
+        /// <summary>
+        /// Get last record in WooAccess Table
+        /// </summary>
+        /// <returns></returns>
         public static List<WooAccessModel> GetLastAccessData()
         {
             string sql = @"SELECT TOP 1 UserId, Name, WooClientKey, WooClientSecret, Created_At FROM dbo.WooAccess;";

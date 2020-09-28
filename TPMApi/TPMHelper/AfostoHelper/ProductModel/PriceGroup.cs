@@ -1,13 +1,10 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using Newtonsoft.Json.Linq;
 
 namespace TPMHelper.AfostoHelper.ProductModel
 {
     public class PriceGroup
     {
-        [JsonProperty("id")]
-        public int Id { get; set; }
+        
     }
 }

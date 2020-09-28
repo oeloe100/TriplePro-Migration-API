@@ -22,7 +22,6 @@ namespace TPMApi.Controllers
     {
         private static IOptions<AuthorizationPoco> _config;
         private static UserManager<IdentityUser> _userManager;
-        private static WTAMapping _wtaMapping;
 
         public AfostoAuthenticationController(
             IOptions<AuthorizationPoco> config,
@@ -30,7 +29,6 @@ namespace TPMApi.Controllers
         {
             _config = config;
             _userManager = userManager;
-            _wtaMapping = new WTAMapping();
         }
 
         /// <summary>

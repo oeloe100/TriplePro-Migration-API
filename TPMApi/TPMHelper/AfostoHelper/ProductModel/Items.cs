@@ -16,12 +16,10 @@ namespace TPMHelper.AfostoHelper.ProductModel
         [JsonProperty("inventory")]
         public Inventory Inventory { get; set; }
         [JsonProperty("options")]
-        public Options Options { get; set; }
+        public List<Options> Options { get; set; }
         [JsonProperty("suffix")]
         public string Suffix { get; set; }
         [JsonProperty("prices")]
-        public Prices Prices { get; set; }
-        [JsonProperty("price_group")]
-        public PriceGroup PriceGroup { get; set; } = null;
+        public List<Prices> Prices { get; set; }
     }
 }

@@ -1,7 +1,5 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using Newtonsoft.Json.Linq;
 
 namespace TPMHelper.AfostoHelper.ProductModel
 {
@@ -10,6 +8,6 @@ namespace TPMHelper.AfostoHelper.ProductModel
         [JsonProperty("total")]
         public int? Total { get; set; } = 50;
         [JsonProperty("warehouses")]
-        public Warehouses Warehouses { get; set; }
+        public JArray Warehouses { get; set; }
     }
 }

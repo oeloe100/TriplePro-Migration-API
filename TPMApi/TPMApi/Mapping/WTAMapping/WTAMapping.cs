@@ -1,25 +1,38 @@
-﻿using AutoMapper;
-using Microsoft.CodeAnalysis.Options;
+﻿using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
+using TPMApi.Middelware;
+using TPMApi.Models;
+using TPMDataLibrary.BusinessLogic;
 using TPMHelper.AfostoHelper.ProductModel;
-using WooCommerceNET.Base;
 using WooCommerceNET.WooCommerce.v3;
-
+using Options = TPMHelper.AfostoHelper.ProductModel.Options;
+using TaxClass = TPMHelper.AfostoHelper.ProductModel.TaxClass;
 
 namespace TPMApi.Mapping.WTAMapping
 {
     public class WTAMapping
     {
         private Product _product;
+        private WCObject _wcObject;
+        private readonly IOptions<AuthorizationPoco> _config;
 
-        public List<JObject> MappingData(List<Product> WooProducts)
+        public WTAMapping(IOptions<AuthorizationPoco> config)
+        {
+            _config = config;
+        }
+
+        public async Task<List<JObject>> MappingData(
+            List<Product> WooProducts,
+            WCObject wcObject)
         {
             var productsAsJObject = new List<JObject>();
+            _wcObject = wcObject;
 
             for (var i = 0; i < WooProducts.Count; i++)
             {
@@ -27,14 +40,14 @@ namespace TPMApi.Mapping.WTAMapping
 
                 var products = new AfostoProductPoco()
                 {
-                    Weight = _product.weight,
-                    Cost = 0,
+                    Weight = CheckDecimalProperty(_product.weight),
+                    Cost = CheckDecimalProperty(_product.price),
                     Is_Backorder_Allowed = _product.backorders_allowed,
                     Is_Tracking_Inventory = false,
-                    Descriptors = SetDescriptors(),
-                    Items = SetItems(),
-                    Images = null,
-                    Specifications = null,
+                    Descriptors = await SetDescriptors(),
+                    Items = await SetItems(i),
+                    Images = null,//SetImages(),
+                    Specifications = SetSpecifications(),
                 };
 
                 var ProductAsjsonString = JsonConvert.SerializeObject(products);
@@ -46,20 +59,27 @@ namespace TPMApi.Mapping.WTAMapping
             return productsAsJObject;
         }
 
-        private Descriptors SetDescriptors()
+        //Descriptors POSTING successfully with 200.
+        private async Task<List<Descriptors>> SetDescriptors()
         {
-            var descriptors = new Descriptors()
+            var descriptors = new List<Descriptors>();
+
+            var descriptor = new Descriptors()
             {
                 description = _product.description,
                 Name = _product.name,
                 Seo = SetSeo(),
-                MetaGroup = SetMetaGroup(),
+                MetaGroup = await SetMetaGroup(),
                 Short_Description = _product.short_description
             };
+
+            descriptors.Add(descriptor);
 
             return descriptors;
         }
 
+        //TODO: Seo Keywords are being POSTED as single word. 
+        //Split keywords by ex. (space) and post as single words.
         private Seo SetSeo()
         {
             var seo = new Seo()
@@ -73,86 +93,213 @@ namespace TPMApi.Mapping.WTAMapping
             return seo;
         }
 
-        private MetaGroup SetMetaGroup()
+        //Working great. POST with 200 success. 
+        private async Task<JToken> SetMetaGroup()
         {
-            var metaGroup = new MetaGroup()
-            {
-                Id = 1390
-            };
+            var afostoMetaData = await MigrationMiddelware.GetAfostoData(
+                AfostoDataProcessor.GetLastAccessToken()[0],
+                _config, "/metagroups");
 
-            return metaGroup;
+            JArray jArrayMetaData = JArray.Parse(afostoMetaData);
+
+            foreach (var metaItem in jArrayMetaData)
+            {
+                return metaItem;
+            }
+
+            return null;
         }
 
-        private Items SetItems()
+        private async Task<List<Items>> SetItems(int index)
         {
-            var items = new Items()
-            {
-                Ean = Convert.ToInt64(DateTime.Now.Ticks.ToString().Substring(0, 13)),
-                Sku = "",
-                Inventory = SetInventory(),
-                Suffix = null,
-                Cost = _product.regular_price,
-                Options = null,
-                Prices = SetPrices(),
-                PriceGroup = null
-            };
+            var items = new List<Items>();
+
+            foreach (var variation in await WooProdVariations())
+            { 
+                var item = new Items()
+                {
+                    Ean = Convert.ToInt64(DateTime.Now.Ticks.ToString().Substring(0, 13)),
+                    Sku = SkuCreator(variation.id),
+                    Cost = _product.regular_price,
+                    Inventory = await SetInventory(variation),
+                    Prices = await SetPrices(variation),
+                    Options = null,
+                    Suffix = null,
+                };
+
+                items.Add(item);
+            }
 
             return items;
         }
 
-        private Inventory SetInventory()
+        private async Task<List<Variation>> WooProdVariations()
+        {
+            var test = _product.id;
+
+            var variations = await _wcObject.Product.Variations.GetAll(_product.id, 
+                new Dictionary<string, string>()
+                {
+                    { "per_page", "50"}
+                });
+
+            return variations;
+        }
+
+        //Create inventory with default 50 products.
+        //amount is in this case not interesting. since we dont track inventory.
+        private async Task<Inventory> SetInventory(Variation var)
         {
             var inventory = new Inventory()
             {
-                Total = 50,
-                Warehouses = SetWareHouses()
+                Total = CheckIntProperty(var.stock_quantity),
+                Warehouses = await SetWareHouses()
             };
 
             return inventory;
         }
 
-        private Warehouses SetWareHouses()
+        //Get first warehouse we can find. and use that. 
+        //If multiple we use multiple warehouses.
+        private async Task<JArray> SetWareHouses()
         {
-            var warehouses = new Warehouses()
-            {
-                Id = 1464,
-                Amount = 23,
-            };
+            var afostoWarehouses = await MigrationMiddelware.GetAfostoData(
+                AfostoDataProcessor.GetLastAccessToken()[0],
+                _config, "/warehouses");
 
-            return warehouses;
+            JArray jArrayWarehouses = JArray.Parse(afostoWarehouses);
+
+            return jArrayWarehouses;
         }
 
-        private Options SetOptions()
+        private async Task<List<Prices>> SetPrices(Variation var)
         {
-            var options = new Options()
-            {
-                Key = "Prijs",
-                Value = "75"
-            };
+            var prices = new List<Prices>();
 
-            return options;
+            try
+            { 
+                var price = new Prices()
+                {
+                    IsEnabled = true,
+                    PriceGross = var.price,
+                    Price_Group = await GetPriceGroup(),
+                    TaxClass = await GetTaxClass(),
+                };
+
+                prices.Add(price);
+
+                return prices;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                return null;
+            }
         }
 
-        private Prices SetPrices()
+        private async Task<JToken> GetPriceGroup()
         {
-            var prices = new Prices()
-            {
-                IsEnabled = true,
-                PriceGross = _product.price,
-                TaxClass = SetTaxClass()
-            };
+            var priceGroups = await MigrationMiddelware.GetAfostoData(
+                AfostoDataProcessor.GetLastAccessToken()[0],
+                _config, "/pricegroups");
 
-            return prices;
+            JArray priceGroupsAsJArray = JArray.Parse(priceGroups);
+
+            return priceGroupsAsJArray[0];
         }
 
-        private TPMHelper.AfostoHelper.ProductModel.TaxClass SetTaxClass()
+        private async Task<JToken> GetTaxClass()
         {
-            var taxClass = new TPMHelper.AfostoHelper.ProductModel.TaxClass()
-            {
-                Id = 2
-            };
+            var taxClasses = await MigrationMiddelware.GetAfostoData(
+                AfostoDataProcessor.GetLastAccessToken()[0],
+                _config, "/taxclasses");
 
-            return taxClass;
+            JArray taxClassesAsJArray = JArray.Parse(taxClasses);
+
+            return taxClassesAsJArray[0];
+        }
+
+        //Response 400 Bad request with message: “Image cannot be blank.”
+        //Issue currently pending with afosto. Waiting for response.
+        private List<Images> SetImages()
+        {
+            var images = new List<Images>();
+
+            var wooImages = _product.images;
+            foreach (var wooImage in wooImages)
+            {
+                var image = new Images()
+                {
+                    IsDefault = false,
+                    Label = wooImage.name,
+                    Url = wooImage.src
+                };
+
+                images.Add(image);
+            }
+
+            images.FirstOrDefault<Images>().IsDefault = true;
+
+            return images;
+        }
+
+        //DONE posting with 200 success. Seems like its not being saved by Afosto.
+        //Issue currently pending with afosto. Waiting for response.
+        private List<Specifications> SetSpecifications()
+        {
+            var specs = new List<Specifications>();
+
+            var wooSpecs = _product.attributes;
+            foreach (var wooSpec in wooSpecs)
+            {
+                foreach (var option in wooSpec.options)
+                {
+                    var spec = new Specifications()
+                    {
+                        Key = wooSpec.name,
+                        Value = option
+                    };
+
+                    specs.Add(spec);
+                }
+            }
+
+            return specs;
+        }
+
+        /*--------------- HELPER METHODS ---------------*/
+
+        private string SkuCreator(int? index)
+        {
+            var stringBuilder = new StringBuilder();
+            var words = _product.name.Split(new char[] { '-', ' ' });
+            
+            for (var i = 0; i < words.Count(); i++)
+            {
+                stringBuilder.Append(words[i]);
+            }
+
+            return stringBuilder + index.ToString();
+        }
+
+        private decimal? CheckDecimalProperty(decimal? prop)
+        {
+            if (prop == null)
+            {
+                return 0;
+            }
+
+            return prop;
+        }
+
+        private int? CheckIntProperty(int? prop)
+        {
+            if (prop == null)
+            {
+                return 0;
+            }
+
+            return prop;
         }
     }
 }

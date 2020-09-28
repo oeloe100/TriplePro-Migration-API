@@ -21,7 +21,7 @@ namespace TPMApi.Controllers
         public MigrationController(IOptions<AuthorizationPoco> config)
         {
             _config = config;
-            _wtaMapping = new WTAMapping();
+            _wtaMapping = new WTAMapping(config);
         }
 
         public IActionResult Index()
@@ -31,28 +31,21 @@ namespace TPMApi.Controllers
 
         public async Task Start()
         {
-            var wooAccessData = WooDataProcessor.GetLastAccessData();
+            var wooAccessData = WooDataProcessor.GetLastAccessData()[0];
 
-            Console.WriteLine();
-
-            //properties now emtpy strings. Need to get data from Db. once implemented
             _wcObject = WooConnect.WcObject(
-                        "",
-                        "");
+                        wooAccessData.WooClientKey,
+                        wooAccessData.WooClientSecret);
 
-            //get 10 products from first page woocommerce.
             var wcProductList = await GetWCProducts(1, 10);
 
-            //get metadata from afosto api. Null should be tPoco (afosto tokens poco). 
-            //get data from db and set to model
-            var afostoMetaData = await MigrationMiddelware.GetAfostoMetaData(
-                null, _config, "/metagroups");
+            /*----------------------- AFOSTO -----------------------*/
 
-            //build the actual product model and POST to afosto api
-            //same here what is null should be tPoco.
             await MigrationMiddelware.BuildWTAMappingModel(
-                _wtaMapping.MappingData(wcProductList),
-                _config, null);
+                AfostoDataProcessor.GetLastAccessToken()[0],
+                await _wtaMapping.MappingData(wcProductList, 
+                _wcObject),
+                _config);
         }
 
         private async Task<List<Product>> GetWCProducts(int page, int productPerPage)
@@ -67,3 +60,4 @@ namespace TPMApi.Controllers
         }
     }
 }
+ 

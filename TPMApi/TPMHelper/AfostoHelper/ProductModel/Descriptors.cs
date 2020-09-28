@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace TPMHelper.AfostoHelper.ProductModel
 {
@@ -13,6 +14,6 @@ namespace TPMHelper.AfostoHelper.ProductModel
         [JsonProperty("seo")]
         public Seo Seo { get; set; }
         [JsonProperty("meta_group")]
-        public MetaGroup MetaGroup { get; set; }
+        public JToken MetaGroup { get; set; }
     }
 }

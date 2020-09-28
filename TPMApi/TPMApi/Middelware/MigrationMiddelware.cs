@@ -22,11 +22,11 @@ namespace TPMApi.Middelware
         /// <param name="afostoAuthenticationData"></param>
         /// <returns></returns>
         public static async Task BuildWTAMappingModel(
+            string accessToken,
             List<JObject> productsMapped, 
-            IOptions<AuthorizationPoco> config,
-            AfostoTokensPoco afostoAuthenticationData)
+            IOptions<AuthorizationPoco> config)
         {
-            await Post("/products", config, afostoAuthenticationData, productsMapped);
+            await Post("/products", config, accessToken, productsMapped);
         }
 
         /// <summary>
@@ -37,29 +37,50 @@ namespace TPMApi.Middelware
         /// <param name="afostoAccessPoco"></param>
         /// <param name="data"></param>
         /// <returns></returns>
-        private static async Task<object> Post(
+        private static async Task Post(
             string path, 
             IOptions<AuthorizationPoco> config,
-            AfostoTokensPoco afostoAccessPoco,
+            string accessToken,
             List<JObject> data)
         {
-            var apiClient = new AfostoHttpClient(afostoAccessPoco.AccessToken);
+            var apiClient = new AfostoHttpClient(accessToken);
             var requestUriString = string.Format("{0}{1}", config.Value.ApiServerUrl, path);
-
-            var dataAsJsonString = JsonConvert.SerializeObject(data);
-            var content = new StringContent(dataAsJsonString);
 
             using (apiClient.AfostoClient)
             {
-                var result = await apiClient.AfostoClient.PostAsync(requestUriString, content);
-
-                if (result.IsSuccessStatusCode)
+                /*
+                foreach (var product in data)
                 {
-                    string resultContent = await result.Content.ReadAsStringAsync();
-                    return resultContent;
-                }
+                    var dataAsJsonString = JsonConvert.SerializeObject(product);
+                    var content = new StringContent(dataAsJsonString);
 
-                throw new Exception(result.ReasonPhrase);
+                    try
+                    {
+                        await apiClient.AfostoClient.PostAsync(
+                            requestUriString, 
+                            content);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex);
+                    }
+                }*/
+
+                var dataAsJsonString = JsonConvert.SerializeObject(data[0]);
+                var content = new StringContent(dataAsJsonString);
+
+                try
+                {
+                    var result = await apiClient.AfostoClient.PostAsync(
+                        requestUriString,
+                        content);
+
+                    Console.WriteLine(result);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
+                }
             }
         }
 
@@ -71,12 +92,12 @@ namespace TPMApi.Middelware
         /// <param name="config"></param>
         /// <param name="path"></param>
         /// <returns></returns>
-        public static async Task<string> GetAfostoMetaData(
-            AfostoTokensPoco afostoAccessPoco,
+        public static async Task<string> GetAfostoData(
+            string accessToken,
             IOptions<AuthorizationPoco> config,
             string path)
         {
-            var apiClient = new AfostoHttpClient(afostoAccessPoco.AccessToken);
+            var apiClient = new AfostoHttpClient(accessToken);
             var requestUriString = string.Format("{0}{1}", config.Value.ApiServerUrl, path);
 
             using (apiClient.AfostoClient)

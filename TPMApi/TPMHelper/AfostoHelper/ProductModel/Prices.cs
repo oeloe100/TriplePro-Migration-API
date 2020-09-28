@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -17,7 +18,11 @@ namespace TPMHelper.AfostoHelper.ProductModel
         public decimal? OriginalPriceGross { get; set; }
         [JsonProperty("original_price")]
         public decimal? OriginalPrice { get; set; }
+        [JsonProperty("price_group")]
+        public JToken Price_Group { get; set; }
         [JsonProperty("tax_class")]
-        public TaxClass TaxClass { get; set; }
+        public JToken TaxClass { get; set; }
+        [JsonProperty("_links")]
+        public JToken Links { get; set; }
     }
 }

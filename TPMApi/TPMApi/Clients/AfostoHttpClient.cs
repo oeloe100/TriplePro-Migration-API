@@ -31,10 +31,10 @@ namespace TPMApi.Clients
             AfostoClient.DefaultRequestHeaders.Accept.Clear();
             
             if (!string.IsNullOrEmpty(_AccessToken))
-            { 
-                AfostoClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", _AccessToken);
+            {
                 AfostoClient.DefaultRequestHeaders.Add("page", "1");
                 AfostoClient.DefaultRequestHeaders.Add("pagesize", "50");
+                AfostoClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _AccessToken);
             }
 
             AfostoClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));

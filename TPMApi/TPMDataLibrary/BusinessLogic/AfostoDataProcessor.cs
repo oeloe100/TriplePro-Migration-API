@@ -28,6 +28,17 @@ namespace TPMDataLibrary.BusinessLogic
         }
 
         /// <summary>
+        /// Get last record in AfostoAccess Table
+        /// </summary>
+        /// <returns></returns>
+        public static List<string> GetLastAccessToken()
+        {
+            string sql = @"SELECT TOP 1 AccessToken FROM dbo.AfostoAccess;";
+
+            return SQLDataAccess.LoadData<string>(sql);
+        }
+
+        /// <summary>
         /// Check if record already exists
         /// </summary>
         /// <param name="model"></param>
