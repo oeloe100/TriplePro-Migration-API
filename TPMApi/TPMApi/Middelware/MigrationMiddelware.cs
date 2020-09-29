@@ -4,6 +4,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Net.Http;
 using System.Threading.Tasks;
 using TPMApi.Clients;
@@ -38,7 +39,7 @@ namespace TPMApi.Middelware
         /// <param name="data"></param>
         /// <returns></returns>
         private static async Task Post(
-            string path, 
+            string path,
             IOptions<AuthorizationPoco> config,
             string accessToken,
             List<JObject> data)
@@ -48,38 +49,19 @@ namespace TPMApi.Middelware
 
             using (apiClient.AfostoClient)
             {
-                /*
                 foreach (var product in data)
                 {
                     var dataAsJsonString = JsonConvert.SerializeObject(product);
                     var content = new StringContent(dataAsJsonString);
 
                     try
-                    {
-                        await apiClient.AfostoClient.PostAsync(
-                            requestUriString, 
-                            content);
+                    { 
+                        await apiClient.AfostoClient.PostAsync(requestUriString, content);
                     }
                     catch (Exception ex)
                     {
                         Console.WriteLine(ex);
                     }
-                }*/
-
-                var dataAsJsonString = JsonConvert.SerializeObject(data[0]);
-                var content = new StringContent(dataAsJsonString);
-
-                try
-                {
-                    var result = await apiClient.AfostoClient.PostAsync(
-                        requestUriString,
-                        content);
-
-                    Console.WriteLine(result);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex);
                 }
             }
         }

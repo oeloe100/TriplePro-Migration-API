@@ -37,13 +37,13 @@ namespace TPMApi.Controllers
                         wooAccessData.WooClientKey,
                         wooAccessData.WooClientSecret);
 
-            var wcProductList = await GetWCProducts(1, 10);
+            var wcProductList = await GetWCProducts(1, 100);
 
             /*----------------------- AFOSTO -----------------------*/
 
             await MigrationMiddelware.BuildWTAMappingModel(
                 AfostoDataProcessor.GetLastAccessToken()[0],
-                await _wtaMapping.MappingData(wcProductList, 
+                await _wtaMapping.MappingData(wcProductList,
                 _wcObject),
                 _config);
         }

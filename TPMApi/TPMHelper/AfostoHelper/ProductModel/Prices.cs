@@ -13,7 +13,7 @@ namespace TPMHelper.AfostoHelper.ProductModel
         [JsonProperty("is_enabled")]
         public bool IsEnabled { get; set; } = true;
         [JsonProperty("price")]
-        public decimal? Price { get; set; } = 0;
+        public decimal? Price { get; set; }
         [JsonProperty("original_price_gross")]
         public decimal? OriginalPriceGross { get; set; }
         [JsonProperty("original_price")]

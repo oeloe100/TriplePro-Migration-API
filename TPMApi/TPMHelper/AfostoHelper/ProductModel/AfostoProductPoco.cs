@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -24,7 +25,7 @@ namespace TPMHelper.AfostoHelper.ProductModel
         [JsonProperty("images")]
         public List<Images> Images { get; set; }
         [JsonProperty("collections")]
-        public List<Collections> Collections { get; set; }
+        public JArray Collections { get; set; }
         [JsonProperty("settings")]
         public List<Settings> Settings { get; set; }
     }
