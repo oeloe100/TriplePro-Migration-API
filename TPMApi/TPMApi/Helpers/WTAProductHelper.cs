@@ -15,7 +15,7 @@ using Options = TPMHelper.AfostoHelper.ProductModel.Options;
 
 namespace TPMApi.Helpers
 {
-    public class WTAHelper
+    public class WTAProductHelper
     {
         private IOptions<AuthorizationPoco> _config;
         private Product _product;
@@ -87,17 +87,6 @@ namespace TPMApi.Helpers
             }
 
             return items;
-        }
-
-        private async Task<List<Variation>> WooProdVariations(WCObject wcObject)
-        {
-            var variations = await wcObject.Product.Variations.GetAll(_product.id,
-                new Dictionary<string, string>()
-                {
-                    { "per_page", "50"}
-                });
-
-            return variations;
         }
 
         private Inventory SetInventory(
@@ -185,6 +174,19 @@ namespace TPMApi.Helpers
             }
 
             return specs;
+        }
+
+        /*--------------- GET Prod. Variations ---------------*/
+
+        private async Task<List<Variation>> WooProdVariations(WCObject wcObject)
+        {
+            var variations = await wcObject.Product.Variations.GetAll(_product.id,
+                new Dictionary<string, string>()
+                {
+                    { "per_page", "50"}
+                });
+
+            return variations;
         }
 
         /*--------------- HELPERS ---------------*/

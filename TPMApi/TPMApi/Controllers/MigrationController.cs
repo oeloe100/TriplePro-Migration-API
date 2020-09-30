@@ -16,12 +16,30 @@ namespace TPMApi.Controllers
     {
         private static IOptions<AuthorizationPoco> _config;
         private static WTAMapping _wtaMapping;
+
+        private static WooCommerceNET.WooCommerce.Legacy.WCObject _wcObjectLegacy;
         private static WCObject _wcObject;
+
+        private static int _productsPerPage = 2;
 
         public MigrationController(IOptions<AuthorizationPoco> config)
         {
             _config = config;
             _wtaMapping = new WTAMapping(config);
+
+            //Get for ex. Accesstoken etc. from Db.
+            var wooAccessData = WooDataProcessor.GetLastAccessData()[0];
+
+            //Connect to WooCommerce Service using LegacyObject >
+            //Only used to get product count.
+            _wcObjectLegacy = WooConnect.LegacyWcObject(
+                wooAccessData.WooClientKey,
+                wooAccessData.WooClientSecret);
+
+            //Connect to woocommerce service with latest V3 Wordpress Rest api.
+            _wcObject = WooConnect.WcObject(
+                wooAccessData.WooClientKey,
+                wooAccessData.WooClientSecret);
         }
 
         public IActionResult Index()
@@ -31,21 +49,32 @@ namespace TPMApi.Controllers
 
         public async Task Start()
         {
-            var wooAccessData = WooDataProcessor.GetLastAccessData()[0];
+            try
+            {
+                var productCount = await _wcObjectLegacy.GetProductCount();
+                var pageCount = (productCount / _productsPerPage);
 
-            _wcObject = WooConnect.WcObject(
-                        wooAccessData.WooClientKey,
-                        wooAccessData.WooClientSecret);
+                for (var i = 1; i <= pageCount;)
+                {
+                    var wcProductList = await GetWCProducts(i, _productsPerPage);
 
-            var wcProductList = await GetWCProducts(1, 100);
+                    foreach (var product in wcProductList)
+                    { 
+                        var mappingData = await _wtaMapping.MappingData(product, _wcObject);
 
-            /*----------------------- AFOSTO -----------------------*/
+                        await MigrationMiddelware.BuildWTAMappingModel(
+                            AfostoDataProcessor.GetLastAccessToken()[0], mappingData, _config);
+                    }
 
-            await MigrationMiddelware.BuildWTAMappingModel(
-                AfostoDataProcessor.GetLastAccessToken()[0],
-                await _wtaMapping.MappingData(wcProductList,
-                _wcObject),
-                _config);
+                    i++;
+                }
+
+                return;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
         }
 
         private async Task<List<Product>> GetWCProducts(int page, int productPerPage)

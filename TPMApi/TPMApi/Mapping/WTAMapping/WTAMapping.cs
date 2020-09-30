@@ -17,7 +17,7 @@ using TaxClass = TPMHelper.AfostoHelper.ProductModel.TaxClass;
 
 namespace TPMApi.Mapping.WTAMapping
 {
-    public class WTAMapping : WTAHelper
+    public class WTAMapping : WTAProductHelper
     {
         //Load pre-configured data from appsettings.json 
         private readonly IOptions<AuthorizationPoco> _config;
@@ -25,7 +25,7 @@ namespace TPMApi.Mapping.WTAMapping
         //WooCommerce product Object (for general use)
         private Product _product;
         //WooCommerce WCObject is used in Product. 
-        //In this case we use is to retrieve every product variant.
+        //In this case we use wcObject retrieve product variants.
         private WCObject _wcObject;
 
         public WTAMapping(IOptions<AuthorizationPoco> config)
@@ -33,48 +33,31 @@ namespace TPMApi.Mapping.WTAMapping
             _config = config;
         }
 
-        public async Task<List<JObject>> MappingData(
-            List<Product> WooProducts,
+        public async Task<JObject> MappingData(
+            Product WooProduct,
             WCObject wcObject)
         {
-            //The list of products we ultimately return to POST to afosto API
-            var productsAsJObject = new List<JObject>();
             _wcObject = wcObject;
+            _product = WooProduct;
 
-            //Loop through loaded woocommerce products.
-            for (var i = 0; i < WooProducts.Count; i++)
+            var products = new AfostoProductPoco()
             {
-                //Select current product that we 
-                _product = WooProducts[i];
-                //_product = WooProducts[0];
+                Weight = CheckDecimalProperty(_product.weight),
+                Cost = CheckDecimalProperty(_product.price),
+                Is_Backorder_Allowed = _product.backorders_allowed,
+                Is_Tracking_Inventory = false,
+                Descriptors = SetDescriptors(_product, _config, await SetAfostoData("/metagroups")),
+                Items = await SetItems(_wcObject, await SetAfostoData("/warehouses"), 
+                await SetAfostoData("/pricegroups"), await TaxClass()),
+                Collections = SetCollections(await SetAfostoData("/collections")),
+                Specifications = SetSpecifications()
+            };
 
-                var products = new AfostoProductPoco()
-                {
-                    Weight = CheckDecimalProperty(_product.weight),
-                    Cost = CheckDecimalProperty(_product.price),
-                    Is_Backorder_Allowed = _product.backorders_allowed,
-                    Is_Tracking_Inventory = false,
-                    Descriptors = SetDescriptors(
-                        _product, 
-                        _config, 
-                        await SetAfostoData("/metagroups")),
-                    Items = await SetItems(
-                        _wcObject, 
-                        await SetAfostoData("/warehouses"), 
-                        await SetAfostoData("/pricegroups"), 
-                        await TaxClass()),
-                    Collections = SetCollections(
-                        await SetAfostoData("/collections")),
-                    Specifications = SetSpecifications()
-                };
+            var ProductAsjsonString = JsonConvert.SerializeObject(products);
+            JObject productAsJsonObject = JObject.Parse(ProductAsjsonString);
 
-                var ProductAsjsonString = JsonConvert.SerializeObject(products);
-                JObject productAsJsonObject = JObject.Parse(ProductAsjsonString);
 
-                productsAsJObject.Add(productAsJsonObject);
-            }
-
-            return productsAsJObject;
+            return productAsJsonObject;
         }
 
         /*--------------- GET Once! ---------------*/

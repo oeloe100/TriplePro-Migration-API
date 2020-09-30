@@ -24,7 +24,7 @@ namespace TPMApi.Middelware
         /// <returns></returns>
         public static async Task BuildWTAMappingModel(
             string accessToken,
-            List<JObject> productsMapped, 
+            JObject productsMapped, 
             IOptions<AuthorizationPoco> config)
         {
             await Post("/products", config, accessToken, productsMapped);
@@ -42,27 +42,19 @@ namespace TPMApi.Middelware
             string path,
             IOptions<AuthorizationPoco> config,
             string accessToken,
-            List<JObject> data)
+            JObject data)
         {
             var apiClient = new AfostoHttpClient(accessToken);
             var requestUriString = string.Format("{0}{1}", config.Value.ApiServerUrl, path);
+            var content = new StringContent(JsonConvert.SerializeObject(data));
 
-            using (apiClient.AfostoClient)
+            try
             {
-                foreach (var product in data)
-                {
-                    var dataAsJsonString = JsonConvert.SerializeObject(product);
-                    var content = new StringContent(dataAsJsonString);
-
-                    try
-                    { 
-                        await apiClient.AfostoClient.PostAsync(requestUriString, content);
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine(ex);
-                    }
-                }
+                await apiClient.AfostoClient.PostAsync(requestUriString, content);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
             }
         }
 
@@ -82,18 +74,15 @@ namespace TPMApi.Middelware
             var apiClient = new AfostoHttpClient(accessToken);
             var requestUriString = string.Format("{0}{1}", config.Value.ApiServerUrl, path);
 
-            using (apiClient.AfostoClient)
+            var result = await apiClient.AfostoClient.GetAsync(requestUriString);
+
+            if (result.IsSuccessStatusCode)
             {
-                var result = await apiClient.AfostoClient.GetAsync(requestUriString);
-
-                if (result.IsSuccessStatusCode)
-                {
-                    string resultContent = await result.Content.ReadAsStringAsync();
-                    return resultContent;
-                }
-
-                throw new Exception(result.ReasonPhrase);
+                string resultContent = await result.Content.ReadAsStringAsync();
+                return resultContent;
             }
+
+            throw new Exception(result.ReasonPhrase);
         }
     }
 }

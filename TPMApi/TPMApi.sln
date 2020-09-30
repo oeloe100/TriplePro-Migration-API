@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TPMApi", "TPMApi\TPMApi.csp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TPMHelper", "TPMHelper\TPMHelper.csproj", "{D41A422D-B95C-40A0-A4A2-6D8DDE4EA215}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TPMDataLibrary", "TPMDataLibrary\TPMDataLibrary.csproj", "{853BABFD-3BCE-49CB-ABC1-6D54B4933CD3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TPMDataLibrary", "TPMDataLibrary\TPMDataLibrary.csproj", "{853BABFD-3BCE-49CB-ABC1-6D54B4933CD3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
