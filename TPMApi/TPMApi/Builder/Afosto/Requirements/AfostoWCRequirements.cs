@@ -1,13 +1,13 @@
 ﻿using WooCommerceNET.WooCommerce.v3;
 
-namespace TPMApi.Interfaces
+namespace TPMApi.Builder.Afosto.Requirements
 {
-    public class WCRequirements : IWCRequirements
+    public class AfostoWCRequirements : IAfostoWCRequirements
     {
         public Product Product { get; }
         public WCObject WCObject { get; }
 
-        public WCRequirements(Product product, WCObject wcObject)
+        public AfostoWCRequirements(Product product, WCObject wcObject)
         {
             Product = product;
             WCObject = wcObject;

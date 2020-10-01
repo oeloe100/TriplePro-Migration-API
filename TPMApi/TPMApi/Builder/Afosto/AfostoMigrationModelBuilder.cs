@@ -2,18 +2,17 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Threading.Tasks;
-using TPMApi.Helpers;
 using TPMApi.Models;
 using TPMHelper.AfostoHelper.ProductModel;
 
-namespace TPMApi.Mapping.WTAMapping
+namespace TPMApi.Builder.Afosto.WTAMapping
 {
-    public class WTAMapping
+    public class AfostoMigrationModelBuilder
     {
         //Load pre-configured data from appsettings.json 
-        private readonly IOptions<AuthorizationPoco> _config;
+        public readonly IOptions<AuthorizationPoco> _config;
 
-        public WTAMapping(IOptions<AuthorizationPoco> config)
+        public AfostoMigrationModelBuilder(IOptions<AuthorizationPoco> config)
         {
             _config = config;
         }

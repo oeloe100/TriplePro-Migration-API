@@ -1,15 +1,11 @@
-﻿using AutoMapper.Configuration;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
 using System;
-using System.Security.Claims;
 using System.Threading.Tasks;
-using TPMApi.Data.Context;
-using TPMApi.Mapping.WTAMapping;
 using TPMApi.Middelware;
 using TPMApi.Models;
 using TPMDataLibrary.BusinessLogic;
@@ -54,7 +50,7 @@ namespace TPMApi.Controllers
                         _config.Value.ConsumerKey,
                         _config.Value.CallbackUrl,
                         state.ToString());
-                    
+
                     var user = await _userManager.GetUserAsync(User);
 
                     //check if we already have existing records with this clientSecret and or name

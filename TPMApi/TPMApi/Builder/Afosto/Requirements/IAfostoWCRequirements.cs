@@ -1,8 +1,8 @@
 ﻿using WooCommerceNET.WooCommerce.v3;
 
-namespace TPMApi.Interfaces
+namespace TPMApi.Builder.Afosto.Requirements
 {
-    public interface IWCRequirements
+    public interface IAfostoWCRequirements
     {
         Product Product { get; }
         WCObject WCObject { get; }

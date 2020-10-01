@@ -1,13 +1,13 @@
 ﻿using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using TPMApi.Interfaces;
+using TPMApi.Builder.Afosto.Requirements;
 using TPMHelper.AfostoHelper.ProductModel;
 using WooCommerceNET.WooCommerce.v3;
 
-namespace TPMApi.Helpers
+namespace TPMApi.Builder.Afosto
 {
-    public interface IAfostoProductBuilder : IWCRequirements
+    public interface IAfostoProductBuilder : IAfostoWCRequirements
     {
         string EanCheck(string sourceEan);
         string Rdm();

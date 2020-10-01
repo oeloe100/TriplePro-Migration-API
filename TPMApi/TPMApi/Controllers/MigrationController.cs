@@ -4,9 +4,8 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using TPMApi.Helpers;
-using TPMApi.Interfaces;
-using TPMApi.Mapping.WTAMapping;
+using TPMApi.Builder.Afosto;
+using TPMApi.Builder.Afosto.WTAMapping;
 using TPMApi.Middelware;
 using TPMApi.Models;
 using TPMApi.Services;
@@ -18,7 +17,7 @@ namespace TPMApi.Controllers
     public class MigrationController : Controller
     {
         private static IOptions<AuthorizationPoco> _config;
-        private static WTAMapping _wtaMapping;
+        private static AfostoMigrationModelBuilder _wtaMapping;
 
         private static WooCommerceNET.WooCommerce.Legacy.WCObject _wcObjectLegacy;
         private static WCObject _wcObject;
@@ -28,7 +27,7 @@ namespace TPMApi.Controllers
         public MigrationController(IOptions<AuthorizationPoco> config)
         {
             _config = config;
-            _wtaMapping = new WTAMapping(config);
+            _wtaMapping = new AfostoMigrationModelBuilder(config);
 
             //Get for ex. Accesstoken etc. from Db.
             var wooAccessData = WooDataProcessor.GetLastAccessData()[0];

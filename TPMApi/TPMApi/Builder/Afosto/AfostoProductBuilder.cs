@@ -5,13 +5,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TPMApi.Interfaces;
+using TPMApi.Builder.Afosto.Requirements;
 using TPMApi.Models;
 using TPMHelper.AfostoHelper.ProductModel;
 using WooCommerceNET.WooCommerce.v3;
 using Options = TPMHelper.AfostoHelper.ProductModel.Options;
 
-namespace TPMApi.Helpers
+namespace TPMApi.Builder.Afosto
 {
     public class AfostoProductBuilder : IAfostoProductBuilder
     {
@@ -21,8 +21,8 @@ namespace TPMApi.Helpers
         public Product Product;
         public WCObject WCObject;
 
-        Product IWCRequirements.Product => Product;
-        WCObject IWCRequirements.WCObject => WCObject;
+        Product IAfostoWCRequirements.Product => Product;
+        WCObject IAfostoWCRequirements.WCObject => WCObject;
 
         public AfostoProductBuilder(
             List<JArray> afostoProductRequirements,
