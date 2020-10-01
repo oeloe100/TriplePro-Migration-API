@@ -8,7 +8,7 @@ namespace TPMHelper.AfostoHelper.ProductModel
     public class Items
     {
         [JsonProperty("ean")]
-        public long? Ean { get; set; }
+        public string Ean { get; set; }
         [JsonProperty("sku")]
         public string Sku { get; set; }
         [JsonProperty("cost")]

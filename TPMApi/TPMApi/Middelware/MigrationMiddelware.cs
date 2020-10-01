@@ -2,13 +2,9 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
 using System.Net.Http;
 using System.Threading.Tasks;
 using TPMApi.Clients;
-using TPMApi.Mapping.WTAMapping;
 using TPMApi.Models;
 
 namespace TPMApi.Middelware
@@ -24,10 +20,10 @@ namespace TPMApi.Middelware
         /// <returns></returns>
         public static async Task BuildWTAMappingModel(
             string accessToken,
-            JObject productsMapped, 
+            JObject productsMapped,
             IOptions<AuthorizationPoco> config)
         {
-            await Post("/products", config, accessToken, productsMapped);
+            await PostAfostoProductModel("/products", config, accessToken, productsMapped);
         }
 
         /// <summary>
@@ -38,7 +34,7 @@ namespace TPMApi.Middelware
         /// <param name="afostoAccessPoco"></param>
         /// <param name="data"></param>
         /// <returns></returns>
-        private static async Task Post(
+        private static async Task PostAfostoProductModel(
             string path,
             IOptions<AuthorizationPoco> config,
             string accessToken,

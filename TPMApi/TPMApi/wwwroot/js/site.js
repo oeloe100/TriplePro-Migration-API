@@ -43,7 +43,7 @@ $(".woo-form-authorize").on("click", function () {
 $(".faa-click").on("click", function () {
     $.ajax({
         type: 'POST',
-        url: '/Migration/Start',
+        url: '/Migration/StartWTAMigration',
     }).done(function (result) {
         console.log(result);
     });
