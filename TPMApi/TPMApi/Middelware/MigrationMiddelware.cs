@@ -1,16 +1,21 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 using TPMApi.Clients;
+using TPMApi.Controllers;
 using TPMApi.Models;
 
 namespace TPMApi.Middelware
 {
     public class MigrationMiddelware
     {
+        private static int? _index;
+        private static int? _currentProductId;
+
         /// <summary>
         /// Here we build the mapping product(s) model and post to afosto /products endpoint
         /// </summary>
@@ -21,9 +26,15 @@ namespace TPMApi.Middelware
         public static async Task BuildWTAMappingModel(
             string accessToken,
             JObject productsMapped,
-            IOptions<AuthorizationPoco> config)
+            IOptions<AuthorizationPoco> config,
+            ILogger<MigrationController> logger,
+            int index,
+            int? productId)
         {
-            await PostAfostoProductModel("/products", config, accessToken, productsMapped);
+            _index = index;
+            _currentProductId = productId;
+
+            await PostAfostoProductModel("/products", config, logger, accessToken, productsMapped);
         }
 
         /// <summary>
@@ -37,6 +48,7 @@ namespace TPMApi.Middelware
         private static async Task PostAfostoProductModel(
             string path,
             IOptions<AuthorizationPoco> config,
+            ILogger<MigrationController> logger,
             string accessToken,
             JObject data)
         {
@@ -46,12 +58,23 @@ namespace TPMApi.Middelware
 
             try
             {
-                await apiClient.AfostoClient.PostAsync(requestUriString, content);
+                var result = await apiClient.AfostoClient.PostAsync(requestUriString, content);
+                if (result.IsSuccessStatusCode)
+                {
+                    logger.LogInformation("Migration Success for id: " + _currentProductId);
+                }
+                else 
+                {
+                    logger.LogWarning("Migration Problem for id: " + _currentProductId);
+                }
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                logger.LogCritical(ex.Message);
+                logger.LogCritical(ex.StackTrace);
             }
+
+            logger.LogInformation("Current index: " + _index);
         }
 
         /// <summary>

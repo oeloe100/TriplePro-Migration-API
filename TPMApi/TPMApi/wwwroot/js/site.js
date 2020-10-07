@@ -45,7 +45,7 @@ $(".faa-click").on("click", function () {
         type: 'POST',
         url: '/Migration/StartWTAMigration',
     }).done(function (result) {
-        console.log(result);
+        $(".sync-process-box").html(result);
     });
 });
 

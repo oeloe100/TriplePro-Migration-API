@@ -225,6 +225,13 @@ body {
     width: 288px;
 }
 
+.fa-check-custom {
+    color: mediumspringgreen;
+    width: 160px;
+    margin: 0 auto;
+    display: block !important;
+}
+
 .woo-form-authorize,
 .afosto-form-authorize {
     width: 150px;

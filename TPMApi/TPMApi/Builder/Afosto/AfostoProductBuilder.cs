@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Microsoft.CodeAnalysis.Options;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -6,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TPMApi.Builder.Afosto.Requirements;
+using TPMApi.Builder.Afosto.SteigerhouthuisCustom;
 using TPMApi.Models;
 using TPMHelper.AfostoHelper.ProductModel;
 using WooCommerceNET.WooCommerce.v3;
@@ -13,7 +15,7 @@ using Options = TPMHelper.AfostoHelper.ProductModel.Options;
 
 namespace TPMApi.Builder.Afosto
 {
-    public class AfostoProductBuilder : IAfostoProductBuilder
+    public class AfostoProductBuilder : IAfostoProductBuilder, ISteigerhoutCustomOptions
     {
         public List<JArray> AfostoProductRequirements;
         public JToken TaxClass;
@@ -87,39 +89,75 @@ namespace TPMApi.Builder.Afosto
         /// <summary>
         /// Set Afosto Items data, Wich is the Variants variant in WooCommerce
         /// </summary>
-        /// <param name="wcObject"></param>
-        /// <param name="warehouses"></param>
-        /// <param name="priceGroups"></param>
-        /// <param name="taxClass"></param>
         /// <returns></returns>
         public async Task<List<Items>> SetItems()
         {
+            int x;
             var items = new List<Items>();
+            var variations = await WooProdVariations();
 
-            foreach (var variation in await WooProdVariations())
+            foreach (var variation in variations)
             {
-                var item = new Items()
+                if (variation.attributes.Count > 0)
                 {
-                    Ean = EanCheck(variation.sku),
-                    Sku = SkuGenerator(variation.id),
-                    Inventory = SetInventory(variation),
-                    Prices = SetPrices(variation),
-                    Options = SetOptions(variation),
-                    Suffix = null,
-                };
+                    var item = new Items()
+                    {
+                        Ean = EanCheck(variation.sku),
+                        Sku = SkuGenerator(variation.id),
+                        Inventory = SetInventory(variation),
+                        Prices = SetPrices(variation),
+                        Options = SetOptions(variation),
+                        Suffix = null,
+                    };
 
-                items.Add(item);
+                    items.Add(item);
+                }
+                else
+                {
+                    var notUsedAttributes = AttributesAsVariants();
+
+                    foreach (var attribute in notUsedAttributes)
+                    {
+                        for (x = 0; x < attribute.options.Count;)
+                        {
+                            var item = new Items()
+                            {
+                                Ean = EanCheck(variation.sku),
+                                Sku = SkuGenerator(RdmShort()),
+                                Inventory = SetInventory(variation),
+                                Prices = SetCustomPrices(Product.price),
+                                Options = BuildOptions(attribute.name, attribute.options[x]),
+                                Suffix = null
+                            };
+
+                            items.Add(item);
+                            x++;
+                        }
+                    }
+                }
             }
+
+            foreach (var option in BuildCustomOptions())
+            { 
+                items.Add(option);
+            }
+
+            Console.WriteLine();
 
             return items;
         }
 
+        private List<ProductAttributeLine> AttributesAsVariants()
+        {
+            var variantsAsAttribute = Product.attributes.Where(x => x.variation == true).ToList();
+
+            return variantsAsAttribute;
+        }
 
         /// <summary>
         /// Set Afosto item inventory for ex. Stock & Warehouses
         /// </summary>
-        /// <param name="var"></param>
-        /// <param name="warehouses"></param>
+        /// <param name="variation"></param>
         /// <returns></returns>
         public Inventory SetInventory(Variation variation)
         {
@@ -132,21 +170,28 @@ namespace TPMApi.Builder.Afosto
             return inventory;
         }
 
+        public Inventory SetCustomInventory(int total)
+        {
+            var inventory = new Inventory()
+            {
+                Total = total,
+                Warehouses = AfostoProductRequirements[2]
+            };
+
+            return inventory;
+        }
+
         /// <summary>
         /// Set the Afosto item price properties.
         /// </summary>
-        /// <param name="var"></param>
-        /// <param name="priceGroups"></param>
-        /// <param name="taxClass"></param>
+        /// <param name="variation"></param>
         /// <returns></returns>
         public List<Prices> SetPrices(Variation variation)
         {
             Prices price = new Prices()
             {
                 Price = variation.price,
-                PriceGross = variation.regular_price,
-                OriginalPrice = variation.price,
-                OriginalPriceGross = variation.regular_price,
+                PriceGross = PriceGross(variation.price),
                 IsEnabled = true,
                 TaxClass = TaxClass,
                 Price_Group = AfostoProductRequirements[3]
@@ -158,10 +203,26 @@ namespace TPMApi.Builder.Afosto
             return prices;
         }
 
+        private List<Prices> SetCustomPrices(decimal? price)
+        {
+            Prices priceModel = new Prices()
+            {
+                Price = price,
+                IsEnabled = true,
+                TaxClass = TaxClass,
+                Price_Group = AfostoProductRequirements[3]
+            };
+
+            List<Prices> prices = new List<Prices>();
+            prices.Add(priceModel);
+
+            return prices;
+        }
+
         /// <summary>
         /// Set Afosto items options.
         /// </summary>
-        /// <param name="var"></param>
+        /// <param name="variation"></param>
         /// <returns></returns>
         public List<Options> SetOptions(Variation variation)
         {
@@ -172,11 +233,25 @@ namespace TPMApi.Builder.Afosto
                 var option = new Options()
                 {
                     Key = attribute.name,
-                    Value = attribute.option
+                    Value = attribute.option.Split(",")[0]
                 };
 
                 options.Add(option);
             }
+
+            return options;
+        }
+
+        private List<Options> BuildOptions(string key, string value)
+        {
+            var option = new Options()
+            {
+                Key = key,
+                Value = value.Split(",")[0]
+            };
+
+            List<Options> options = new List<Options>();
+            options.Add(option);
 
             return options;
         }
@@ -298,6 +373,19 @@ namespace TPMApi.Builder.Afosto
             return numb;
         }
 
+        private int? RdmShort()
+        {
+            Random generator = new Random();
+            String numb = generator.Next(0, 1000000).ToString("D8");
+
+            if (numb.Distinct().Count() == 1)
+            {
+                numb = Rdm();
+            }
+
+            return Int32.Parse(numb);
+        }
+
         /// <summary>
         /// Generate SKU based on product title + Recource ID.
         /// </summary>
@@ -314,6 +402,109 @@ namespace TPMApi.Builder.Afosto
             }
 
             return stringBuilder + id.ToString();
+        }
+
+        private decimal? PriceGross(decimal? price)
+        {
+            var vat = (price / 100) * 21;
+            var priceGross = (price - vat);
+
+            return priceGross;
+        }
+
+        /*--------------- Steigerhout Project Customs ---------------*/
+
+        public List<Items> BuildCustomOptions()
+        {
+            var coatingOptions = CustomOptions.NanoCoatingOption();
+            var customItems = SetCustomItems(coatingOptions, false);
+
+            return customItems;
+        }
+
+        public List<Items> SetCustomItems(IDictionary<string, List<string>> options, bool isWashing)
+        {
+            List<Items> itemsList = new List<Items>();
+
+            foreach (var coatingItem in options)
+            {
+                var key = coatingItem.Key;
+                foreach (var value in coatingItem.Value)
+                {
+                    var item = new Items()
+                    {
+                        Ean = EanCheck(null),
+                        Sku = SkuGenerator(RdmShort()),
+                        Inventory = SetCustomInventory(0),
+                        Prices = SetCustomPrices(FinishTypePriceRange(isWashing)),
+                        Options = BuildOptions(key, value),
+                        Suffix = null
+                    };
+
+                    ItemPriceAdjustment(item);
+                    itemsList.Add(item);
+                }
+            }
+
+            return itemsList;
+        }
+
+        public void ItemPriceAdjustment(Items item)
+        {
+            foreach (var option in item.Options)
+            {
+                if (option.Value.ToLower().Contains("geen"))
+                {
+                    foreach (var price in item.Prices)
+                    {
+                        price.Price = 0;
+                    }
+                }
+            }
+        }
+
+        public List<ProductAttributeLine> UnusedAttributes()
+        {
+            var variantsAsAttributes = Product.attributes.Where(x => x.variation == true && 
+                                        x.name.ToLower().Contains("afwerkingen")).ToList();
+            
+            if (variantsAsAttributes.Count > 0)
+            { 
+                return variantsAsAttributes;
+            }
+
+            return null;
+        }
+
+        public decimal? FinishTypePriceRange(bool isWashing)
+        {
+            foreach (var category in Product.categories)
+            {
+                if (isWashing)
+                {
+                    switch (category.id)
+                    {
+                        default:
+                            return 20;
+                        case 458:
+                            return 40;
+                        case 15:
+                            return 40;
+                    }
+                }
+                else
+                {
+                    switch (category.id)
+                    {
+                        default:
+                            return 30;
+                        case 458:
+                            return 50;
+                    }
+                }
+            }
+
+            return null;
         }
     }
 }

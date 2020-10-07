@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
 using TPMApi.Builder.Afosto;
 using TPMApi.Builder.Afosto.WTAMapping;
@@ -17,16 +19,20 @@ namespace TPMApi.Controllers
     public class MigrationController : Controller
     {
         private static IOptions<AuthorizationPoco> _config;
+        private static ILogger<MigrationController> _logger;
         private static AfostoMigrationModelBuilder _wtaMapping;
 
         private static WooCommerceNET.WooCommerce.Legacy.WCObject _wcObjectLegacy;
         private static WCObject _wcObject;
 
-        private static readonly int _productsPerPage = 2;
+        private static readonly int _pageSize = 100;
 
-        public MigrationController(IOptions<AuthorizationPoco> config)
+        public MigrationController(
+            IOptions<AuthorizationPoco> config,
+            ILogger<MigrationController> logger)
         {
             _config = config;
+            _logger = logger;
             _wtaMapping = new AfostoMigrationModelBuilder(config);
 
             //Get for ex. Accesstoken etc. from Db.
@@ -43,22 +49,29 @@ namespace TPMApi.Controllers
         /// Start WooCommerce to Afosto migration process.
         /// </summary>
         /// <returns></returns>
-        public async Task StartWTAMigration()
+        public async Task<ContentResult> StartWTAMigration()
         {
+            var index = 0;
+
             try
             {
+                //Remove in product FOR TESTING
+                List<JObject> migrationModels = new List<JObject>();
+
                 //Get WooCommerce Shop product count trough Legacy WCObject
                 var productCount = await _wcObjectLegacy.GetProductCount();
                 //Calculate the amount of pages available
-                var pageCount = (productCount / _productsPerPage);
+                var pageCount = (int)Math.Ceiling((double)productCount / _pageSize);
 
-                for (var i = 1; i <= pageCount;)
+                for (var i = 2; i <= pageCount;)
                 {
                     //Get Product from WooCOmmerce Rest Api based on page/product count
-                    var wcProductList = await GetWCProducts(i, _productsPerPage);
+                    var wcProductList = await GetWCProducts(i, _pageSize);
 
                     foreach (var wcProduct in wcProductList)
                     {
+                        index++;
+
                         IAfostoProductBuilder afostoProductBuilder = new AfostoProductBuilder(
                             await Requirements(), await GetTaxClass(),
                             _config, wcProduct, _wcObject);
@@ -68,18 +81,45 @@ namespace TPMApi.Controllers
 
                         //Post the model we build to Afosto as Json
                         await MigrationMiddelware.BuildWTAMappingModel(
-                            AfostoDataProcessor.GetLastAccessToken()[0], mappingData, _config);
+                            AfostoDataProcessor.GetLastAccessToken()[0], 
+                            mappingData, _config, _logger, index, wcProduct.id);
+
+                        //Remove in Production only for TESTING
+                        migrationModels.Add(mappingData);
+
+                        Console.WriteLine();
                     }
 
-                    i++;
+                   i++;
                 }
 
-                return;
+                return OnMigrationCompleted();
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                _logger.LogError(ex.Message + ex.StackTrace);
+                return OnMigrationFailed(ex);
             }
+        }
+
+        private ContentResult OnMigrationCompleted()
+        {
+            return new ContentResult
+            {
+                ContentType = "text/html",
+                StatusCode = (int)HttpStatusCode.OK,
+                Content = "<i class='fas fa-check fa-10x fa-check-custom'></i>"
+            };
+        }
+
+        private ContentResult OnMigrationFailed(Exception ex)
+        {
+            return new ContentResult
+            {
+                ContentType = "text/html",
+                StatusCode = (int)HttpStatusCode.OK,
+                Content = "<i class='fas fa-times'></i> <p>" + ex.Message + "</p>"
+            };
         }
 
         /// <summary>
@@ -122,10 +162,10 @@ namespace TPMApi.Controllers
         {
             List<JArray> requirementsList = new List<JArray>();
 
-            requirementsList.Add(await SetAfostoData("/collections"));
-            requirementsList.Add(await SetAfostoData("/metagroups"));
-            requirementsList.Add(await SetAfostoData("/warehouses"));
-            requirementsList.Add(await SetAfostoData("/pricegroups"));
+            requirementsList.Add(await GetDataByPath("/collections"));
+            requirementsList.Add(await GetDataByPath("/metagroups"));
+            requirementsList.Add(await GetDataByPath("/warehouses"));
+            requirementsList.Add(await GetDataByPath("/pricegroups"));
 
             return requirementsList;
         }
@@ -138,7 +178,7 @@ namespace TPMApi.Controllers
         public async Task<JToken> GetTaxClass()
         {
             var taxClass = await LoadAfostoData("/taxclasses");
-            return taxClass[2];
+            return taxClass[0];
         }
 
         /*--------------- GET Once! ---------------*/
@@ -148,7 +188,7 @@ namespace TPMApi.Controllers
         /// </summary>
         /// <param name="path"></param>
         /// <returns></returns>
-        internal async Task<JArray> SetAfostoData(string path)
+        internal async Task<JArray> GetDataByPath(string path)
         {
             var data = await LoadAfostoData(path);
             return data;
