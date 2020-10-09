@@ -9,6 +9,7 @@ namespace TPMApi.Builder.Afosto
 {
     public interface IAfostoProductBuilder : IAfostoWCRequirements
     {
+        List<Images> SetImages();
         string EanCheck(string sourceEan);
         string Rdm();
         JArray SetCollections();

@@ -1,8 +1,10 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Threading.Tasks;
+using TPMApi.Controllers;
 using TPMApi.Models;
 using TPMHelper.AfostoHelper.ProductModel;
 
@@ -12,11 +14,14 @@ namespace TPMApi.Builder.Afosto.WTAMapping
     {
         //Load pre-configured data from appsettings.json 
         public readonly IOptions<AuthorizationPoco> _config;
+        private static ILogger<MigrationController> _logger;
 
         public AfostoMigrationModelBuilder(
-            IOptions<AuthorizationPoco> config)
+            IOptions<AuthorizationPoco> config,
+            ILogger<MigrationController> logger)
         {
             _config = config;
+            _logger = logger;
         }
 
         /// <summary>
@@ -39,7 +44,8 @@ namespace TPMApi.Builder.Afosto.WTAMapping
                     Descriptors = afostoProduct.SetDescriptors(),
                     Items = await afostoProduct.SetItems(),
                     Collections = afostoProduct.SetCollections(),
-                    Specifications = afostoProduct.SetSpecifications()
+                    Specifications = afostoProduct.SetSpecifications(),
+                    Images = afostoProduct.SetImages(),
                 };
 
                 var ProductAsjsonString = JsonConvert.SerializeObject(product);
@@ -49,6 +55,7 @@ namespace TPMApi.Builder.Afosto.WTAMapping
             }
             catch (Exception ex)
             {
+                _logger.LogError("AfostoMigrationModelBuilder Error: " + ex.Message + ex.StackTrace);
                 return null;
             }
         }

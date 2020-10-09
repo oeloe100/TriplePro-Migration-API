@@ -1,9 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Net;
 using System.Threading.Tasks;
 using TPMApi.Builder.Afosto;
@@ -12,7 +15,9 @@ using TPMApi.Middelware;
 using TPMApi.Models;
 using TPMApi.Services;
 using TPMDataLibrary.BusinessLogic;
+using WooCommerceNET;
 using WooCommerceNET.WooCommerce.v3;
+using WooCommerceNET.WooCommerce.v3.Extension;
 
 namespace TPMApi.Controllers
 {
@@ -20,24 +25,29 @@ namespace TPMApi.Controllers
     {
         private static IOptions<AuthorizationPoco> _config;
         private static ILogger<MigrationController> _logger;
+        private static IWebHostEnvironment _env;
         private static AfostoMigrationModelBuilder _wtaMapping;
 
         private static WooCommerceNET.WooCommerce.Legacy.WCObject _wcObjectLegacy;
         private static WCObject _wcObject;
+        private static RestAPI _wcRestAPI;
+        private static WooAccessModel _wooAccessModel;
 
         private static readonly int _pageSize = 100;
 
         public MigrationController(
             IOptions<AuthorizationPoco> config,
-            ILogger<MigrationController> logger)
+            ILogger<MigrationController> logger,
+            IWebHostEnvironment env)
         {
             _config = config;
             _logger = logger;
-            _wtaMapping = new AfostoMigrationModelBuilder(config);
+            _env = env;
+            _wtaMapping = new AfostoMigrationModelBuilder(config, logger);
 
             //Get for ex. Accesstoken etc. from Db.
-            var wooAccessData = WooDataProcessor.GetLastAccessData()[0];
-            CreateWCObjectInstance(wooAccessData);
+            _wooAccessModel = WooDataProcessor.GetLastAccessData()[0];
+            CreateWCObjectInstance(_wooAccessModel);
         }
 
         public IActionResult Index()
@@ -63,7 +73,7 @@ namespace TPMApi.Controllers
                 //Calculate the amount of pages available
                 var pageCount = (int)Math.Ceiling((double)productCount / _pageSize);
 
-                for (var i = 2; i <= pageCount;)
+                for (var i = 1; i <= pageCount;)
                 {
                     //Get Product from WooCOmmerce Rest Api based on page/product count
                     var wcProductList = await GetWCProducts(i, _pageSize);
@@ -72,9 +82,14 @@ namespace TPMApi.Controllers
                     {
                         index++;
 
+                        //We first upload the images to afosto. Then we use the given ID to connect product to image.
+                        var imageResult = await MigrationMiddelware.UploadImageToAfosto(
+                                AfostoDataProcessor.GetLastAccessToken()[0], 
+                                _wcRestAPI, _env, wcProduct.images);
+
                         IAfostoProductBuilder afostoProductBuilder = new AfostoProductBuilder(
                             await Requirements(), await GetTaxClass(),
-                            _config, wcProduct, _wcObject);
+                            _config, wcProduct, _wcObject, imageResult);
 
                         //Build the actual model we post to afosto
                         var mappingData = await _wtaMapping.BuildAfostoMigrationModel(afostoProductBuilder);
@@ -150,6 +165,10 @@ namespace TPMApi.Controllers
             //Connect to woocommerce service with latest V3 Wordpress Rest api.
             _wcObject = WooConnect.WcObject(
                 wam.WooClientKey,
+                wam.WooClientSecret);
+
+            _wcRestAPI = WooConnect.WcRestAPI(
+                wam.WooClientKey, 
                 wam.WooClientSecret);
         }
 

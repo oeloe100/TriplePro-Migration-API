@@ -43,6 +43,14 @@ namespace TPMApi.Services
             return wcObject;
         }
 
+        public static RestAPI WcRestAPI(string id, string secret)
+        {
+            RestAPI restApi = new RestAPI("https://www.hetsteigerhouthuis.nl/wp-json/wc/v3/",
+                        id, secret, requestFilter: RequestFilter, responseFilter: ResponseFilter);
+
+            return restApi;
+        }
+
         /// <summary>
         /// Neccesary filter. (like scope)
         /// </summary>

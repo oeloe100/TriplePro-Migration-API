@@ -7,10 +7,8 @@ namespace TPMHelper.AfostoHelper.ProductModel
 {
     public class Images
     {
-        [JsonProperty("url")]
-        public string Url { get; set; }
-        [JsonProperty("label")]
-        public string Label { get; set; }
+        [JsonProperty("id")]
+        public int Id { get; set; }
         [JsonProperty("is_default")]
         public bool IsDefault { get; set; } = false;
     }

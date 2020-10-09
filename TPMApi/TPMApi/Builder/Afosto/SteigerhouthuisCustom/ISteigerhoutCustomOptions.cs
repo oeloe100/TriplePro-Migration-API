@@ -11,7 +11,10 @@ namespace TPMApi.Builder.Afosto.SteigerhouthuisCustom
     {
         List<Items> BuildCustomOptions();
 
-        List<Items> SetCustomItems(IDictionary<string, List<string>> options, bool isWashing);
+        void SetCustomItems(
+            IDictionary<string, List<string>> options,
+            List<Items> itemsList,
+            bool isWashing);
 
         void ItemPriceAdjustment(Items item);
 

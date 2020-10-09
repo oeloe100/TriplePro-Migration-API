@@ -1,5 +1,4 @@
-﻿using Microsoft.CodeAnalysis.Options;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -12,6 +11,9 @@ using TPMApi.Models;
 using TPMHelper.AfostoHelper.ProductModel;
 using WooCommerceNET.WooCommerce.v3;
 using Options = TPMHelper.AfostoHelper.ProductModel.Options;
+using Product = WooCommerceNET.WooCommerce.v3.Product;
+using Variation = WooCommerceNET.WooCommerce.v3.Variation;
+using WCObject = WooCommerceNET.WooCommerce.v3.WCObject;
 
 namespace TPMApi.Builder.Afosto
 {
@@ -22,6 +24,7 @@ namespace TPMApi.Builder.Afosto
         public IOptions<AuthorizationPoco> Config;
         public Product Product;
         public WCObject WCObject;
+        public List<AfostoImageModelAfterUpload> ImageResult;
 
         Product IAfostoWCRequirements.Product => Product;
         WCObject IAfostoWCRequirements.WCObject => WCObject;
@@ -31,13 +34,15 @@ namespace TPMApi.Builder.Afosto
             JToken taxClass,
             IOptions<AuthorizationPoco> config,
             Product product,
-            WCObject wcObject)
+            WCObject wcObject,
+            List<AfostoImageModelAfterUpload> imageResult)
         {
             AfostoProductRequirements = afostoProductRequirements;
             TaxClass = taxClass;
             Config = config;
             Product = product;
             WCObject = wcObject;
+            ImageResult = imageResult;
         }
 
         /*--------------- DESCRIPTORS ---------------*/
@@ -137,12 +142,14 @@ namespace TPMApi.Builder.Afosto
                 }
             }
 
-            foreach (var option in BuildCustomOptions())
+            if (Product.attributes.Where(x => x.variation == true 
+                && x.name.ToLower() != "afwerkingen").Count() < 2)
             { 
-                items.Add(option);
+                foreach (var option in BuildCustomOptions())
+                {
+                    items.Add(option);
+                }
             }
-
-            Console.WriteLine();
 
             return items;
         }
@@ -271,6 +278,25 @@ namespace TPMApi.Builder.Afosto
             return AfostoProductRequirements[0];
         }
 
+        /*--------------- IMAGES ---------------*/
+       
+        public List<Images> SetImages()
+        {
+            List<Images> productImages = new List<Images>();
+
+            foreach (var image in ImageResult)
+            {
+                var imageObject = new Images()
+                {
+                    Id = image.Id,
+                };
+
+                productImages.Add(imageObject);
+            }
+
+            return productImages;
+        }
+
         /*--------------- SPECIFICATIONS ---------------*/
 
         /// <summary>
@@ -375,15 +401,25 @@ namespace TPMApi.Builder.Afosto
 
         private int? RdmShort()
         {
-            Random generator = new Random();
-            String numb = generator.Next(0, 1000000).ToString("D8");
+            var numbersArray = Enumerable.Range(0, 10).ToArray();
+            var random = new Random();
+            int uniqueNumber = 0;
 
-            if (numb.Distinct().Count() == 1)
+            // Shuffle the array
+            for (int i = 0; i < numbersArray.Length; ++i)
             {
-                numb = Rdm();
+                int randomIndex = random.Next(numbersArray.Length);
+                int temp = numbersArray[randomIndex];
+                numbersArray[randomIndex] = numbersArray[i];
+                numbersArray[i] = temp;
             }
 
-            return Int32.Parse(numb);
+            for (var i = 0; i < numbersArray.Length; i++)
+            {
+                uniqueNumber += numbersArray[i] * Convert.ToInt32(Math.Pow(10, numbersArray.Length - i - 1));
+            }
+
+            return uniqueNumber;
         }
 
         /// <summary>
@@ -416,16 +452,22 @@ namespace TPMApi.Builder.Afosto
 
         public List<Items> BuildCustomOptions()
         {
-            var coatingOptions = CustomOptions.NanoCoatingOption();
-            var customItems = SetCustomItems(coatingOptions, false);
-
-            return customItems;
-        }
-
-        public List<Items> SetCustomItems(IDictionary<string, List<string>> options, bool isWashing)
-        {
             List<Items> itemsList = new List<Items>();
 
+            var coatingOptions = CustomOptions.NanoCoatingOptions();
+            SetCustomItems(coatingOptions, itemsList, false);
+
+            var washingOptions = CustomOptions.WashingsOptions();
+            SetCustomItems(washingOptions, itemsList, true);
+
+            return itemsList;
+        }
+
+        public void SetCustomItems(
+            IDictionary<string, List<string>> options,
+            List<Items> itemsList,
+            bool isWashing)
+        {
             foreach (var coatingItem in options)
             {
                 var key = coatingItem.Key;
@@ -445,8 +487,6 @@ namespace TPMApi.Builder.Afosto
                     itemsList.Add(item);
                 }
             }
-
-            return itemsList;
         }
 
         public void ItemPriceAdjustment(Items item)
@@ -465,11 +505,11 @@ namespace TPMApi.Builder.Afosto
 
         public List<ProductAttributeLine> UnusedAttributes()
         {
-            var variantsAsAttributes = Product.attributes.Where(x => x.variation == true && 
+            var variantsAsAttributes = Product.attributes.Where(x => x.variation == true &&
                                         x.name.ToLower().Contains("afwerkingen")).ToList();
-            
+
             if (variantsAsAttributes.Count > 0)
-            { 
+            {
                 return variantsAsAttributes;
             }
 

@@ -1,13 +1,25 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.IO;
+using System.Net;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using TPMApi.Clients;
 using TPMApi.Controllers;
 using TPMApi.Models;
+using WooCommerceNET;
+using WooCommerceNET.WooCommerce.v3;
+using MediaTypeHeaderValue = System.Net.Http.Headers.MediaTypeHeaderValue;
+using System.Drawing.Imaging;
+using WooCommerceNET.WooCommerce.Legacy;
 
 namespace TPMApi.Middelware
 {
@@ -63,7 +75,7 @@ namespace TPMApi.Middelware
                 {
                     logger.LogInformation("Migration Success for id: " + _currentProductId);
                 }
-                else 
+                else
                 {
                     logger.LogWarning("Migration Problem for id: " + _currentProductId);
                 }
@@ -102,6 +114,49 @@ namespace TPMApi.Middelware
             }
 
             throw new Exception(result.ReasonPhrase);
+        }
+
+        public static async Task<List<AfostoImageModelAfterUpload>> UploadImageToAfosto(
+            string accessToken, 
+            RestAPI wcRestAPI,
+            IWebHostEnvironment env,
+            List<ProductImage> imageObjectList,
+            Dictionary<string, string> parms = null)
+        {
+            var apiClient = new AfostoHttpClient(accessToken);
+            var url = "https://upload.afosto.com/v2/product";
+            var testLocation = "https://overclothing.com/wp-content/uploads/sites/3/2020/09/night-on-fire-mens-white-a-3-600x600.jpg";
+
+            List<AfostoImageModelAfterUpload> imageList = new List<AfostoImageModelAfterUpload>();
+
+            using (var httpClient = apiClient.AfostoClient)
+            {
+                using (var form = new MultipartFormDataContent())
+                {
+                    if (httpClient.GetByteArrayAsync(imageObjectList[0].src).IsCompletedSuccessfully)
+                    {
+                        byte[] imageBytes = await httpClient.GetByteArrayAsync(imageObjectList[0].src);
+
+                        using (var fileContent = new ByteArrayContent(imageBytes))
+                        {
+                            fileContent.Headers.ContentType = MediaTypeHeaderValue.Parse("multipart/form-data");
+
+                            form.Add(fileContent, "file", Path.GetFileName(testLocation));
+                            HttpResponseMessage response = httpClient.PostAsync(url, form).Result;
+
+                            if (response.IsSuccessStatusCode)
+                            {
+                                string body = await response.Content.ReadAsStringAsync();
+                                var customModel = JsonConvert.DeserializeObject<AfostoImageModelAfterUpload>(body);
+
+                                imageList.Add(customModel);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return imageList;
         }
     }
 }
