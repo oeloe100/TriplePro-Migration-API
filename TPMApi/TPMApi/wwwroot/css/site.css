@@ -247,3 +247,8 @@ body {
     padding-top: 25px;
     width: 500px;
 }
+
+.modal {
+    background-color: rgba(0, 0, 0, 0.5);
+    padding-top: 275px;
+}

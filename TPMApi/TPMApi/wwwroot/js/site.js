@@ -3,10 +3,37 @@
 
 // Write your JavaScript code.
 
+var specialReqArray = [];
+
 $(function () {
     LoadPartialView();
     TooltipManager();
     FaaManager();
+
+    setTimeout(function () {
+        PopUp();
+    }, 1000); // 1000 to load it after 1 seconds from page load
+});
+
+function PopUp() {
+    if ($(".modal").css("display") == "none") {
+        $(".modal").css("display", "block");
+    }
+}
+
+$(".modal-close").on("click", function () {
+    $(".modal").css("display", "none");
+});
+
+$(".modal-save").on("click", function () {
+    var selections = $(".special-form").find("#inlineFormCustomSelect");
+
+    $(selections).each(function (index, value) {
+        var value = $(value).val();
+        specialReqArray.push(value);
+    });
+
+    $(".modal").css("display", "none");
 });
 
 //in case of onclick no need to call in document.ready
@@ -44,6 +71,8 @@ $(".faa-click").on("click", function () {
     $.ajax({
         type: 'POST',
         url: '/Migration/StartWTAMigration',
+        traditional: true,
+        data: { "specialsArray" : specialReqArray },
     }).done(function (result) {
         $(".sync-process-box").html(result);
     });

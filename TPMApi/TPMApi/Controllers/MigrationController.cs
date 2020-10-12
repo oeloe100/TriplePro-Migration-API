@@ -1,23 +1,21 @@
 ﻿using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Net;
 using System.Threading.Tasks;
 using TPMApi.Builder.Afosto;
 using TPMApi.Builder.Afosto.WTAMapping;
+using TPMApi.Customs.SteigerhouthuisCustom;
 using TPMApi.Middelware;
 using TPMApi.Models;
 using TPMApi.Services;
 using TPMDataLibrary.BusinessLogic;
 using WooCommerceNET;
 using WooCommerceNET.WooCommerce.v3;
-using WooCommerceNET.WooCommerce.v3.Extension;
 
 namespace TPMApi.Controllers
 {
@@ -26,6 +24,7 @@ namespace TPMApi.Controllers
         private static IOptions<AuthorizationPoco> _config;
         private static ILogger<MigrationController> _logger;
         private static IWebHostEnvironment _env;
+        private static ISteigerhoutCustomOptionsBuilder _steigerhoutCustomOptionsBuilder;
         private static AfostoMigrationModelBuilder _wtaMapping;
 
         private static WooCommerceNET.WooCommerce.Legacy.WCObject _wcObjectLegacy;
@@ -59,15 +58,12 @@ namespace TPMApi.Controllers
         /// Start WooCommerce to Afosto migration process.
         /// </summary>
         /// <returns></returns>
-        public async Task<ContentResult> StartWTAMigration()
+        public async Task<ContentResult> StartWTAMigration(List<string> specialsArray)
         {
             var index = 0;
 
             try
             {
-                //Remove in product FOR TESTING
-                List<JObject> migrationModels = new List<JObject>();
-
                 //Get WooCommerce Shop product count trough Legacy WCObject
                 var productCount = await _wcObjectLegacy.GetProductCount();
                 //Calculate the amount of pages available
@@ -82,13 +78,16 @@ namespace TPMApi.Controllers
                     {
                         index++;
 
+                        //First we check if we have included a customOption if so we create an instance.
+                        await IncludeCustomOptions(specialsArray, wcProduct);
+
                         //We first upload the images to afosto. Then we use the given ID to connect product to image.
                         var imageResult = await MigrationMiddelware.UploadImageToAfosto(
-                                AfostoDataProcessor.GetLastAccessToken()[0], 
+                                AfostoDataProcessor.GetLastAccessToken()[0],
                                 _wcRestAPI, _env, wcProduct.images);
 
                         IAfostoProductBuilder afostoProductBuilder = new AfostoProductBuilder(
-                            await Requirements(), await GetTaxClass(),
+                            await Requirements(), await GetTaxClass(), _steigerhoutCustomOptionsBuilder, 
                             _config, wcProduct, _wcObject, imageResult);
 
                         //Build the actual model we post to afosto
@@ -96,16 +95,13 @@ namespace TPMApi.Controllers
 
                         //Post the model we build to Afosto as Json
                         await MigrationMiddelware.BuildWTAMappingModel(
-                            AfostoDataProcessor.GetLastAccessToken()[0], 
+                            AfostoDataProcessor.GetLastAccessToken()[0],
                             mappingData, _config, _logger, index, wcProduct.id);
-
-                        //Remove in Production only for TESTING
-                        migrationModels.Add(mappingData);
 
                         Console.WriteLine();
                     }
 
-                   i++;
+                    i++;
                 }
 
                 return OnMigrationCompleted();
@@ -114,6 +110,18 @@ namespace TPMApi.Controllers
             {
                 _logger.LogError(ex.Message + ex.StackTrace);
                 return OnMigrationFailed(ex);
+            }
+        }
+
+        private async Task IncludeCustomOptions(List<string> includedOptions, Product product)
+        {
+            foreach (var option in includedOptions)
+            { 
+                if (option.ToLower().Contains("steigerhout"))
+                {
+                    _steigerhoutCustomOptionsBuilder = new SteigerhoutCustomOptionsBuilder(
+                        product, await Requirements(), await GetTaxClass());
+                }
             }
         }
 
@@ -168,7 +176,7 @@ namespace TPMApi.Controllers
                 wam.WooClientSecret);
 
             _wcRestAPI = WooConnect.WcRestAPI(
-                wam.WooClientKey, 
+                wam.WooClientKey,
                 wam.WooClientSecret);
         }
 
@@ -199,8 +207,6 @@ namespace TPMApi.Controllers
             var taxClass = await LoadAfostoData("/taxclasses");
             return taxClass[0];
         }
-
-        /*--------------- GET Once! ---------------*/
 
         /// <summary>
         /// Load Data from afosto Rest API based on Path

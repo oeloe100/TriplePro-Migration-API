@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using TPMHelper.AfostoHelper.ProductModel;
 using WooCommerceNET.WooCommerce.v3;
 
-namespace TPMApi.Builder.Afosto.SteigerhouthuisCustom
+namespace TPMApi.Customs.SteigerhouthuisCustom
 {
-    interface ISteigerhoutCustomOptions
+    public interface ISteigerhoutCustomOptions
     {
         List<Items> BuildCustomOptions();
 
@@ -21,5 +18,11 @@ namespace TPMApi.Builder.Afosto.SteigerhouthuisCustom
         List<ProductAttributeLine> UnusedAttributes();
 
         decimal? FinishTypePriceRange(bool isWashing);
+
+        /*void BuildVariantsOfUnusedMarkedAttributes(
+            List<Items> items,
+            Variation variation);*/
+
+        void BuildNewWashings(List<Items> items);
     }
 }

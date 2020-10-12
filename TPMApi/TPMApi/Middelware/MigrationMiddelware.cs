@@ -1,16 +1,12 @@
 ﻿using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.IO;
-using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using TPMApi.Clients;
 using TPMApi.Controllers;
@@ -18,8 +14,6 @@ using TPMApi.Models;
 using WooCommerceNET;
 using WooCommerceNET.WooCommerce.v3;
 using MediaTypeHeaderValue = System.Net.Http.Headers.MediaTypeHeaderValue;
-using System.Drawing.Imaging;
-using WooCommerceNET.WooCommerce.Legacy;
 
 namespace TPMApi.Middelware
 {
@@ -117,7 +111,7 @@ namespace TPMApi.Middelware
         }
 
         public static async Task<List<AfostoImageModelAfterUpload>> UploadImageToAfosto(
-            string accessToken, 
+            string accessToken,
             RestAPI wcRestAPI,
             IWebHostEnvironment env,
             List<ProductImage> imageObjectList,
@@ -125,7 +119,8 @@ namespace TPMApi.Middelware
         {
             var apiClient = new AfostoHttpClient(accessToken);
             var url = "https://upload.afosto.com/v2/product";
-            var testLocation = "https://overclothing.com/wp-content/uploads/sites/3/2020/09/night-on-fire-mens-white-a-3-600x600.jpg";
+            //var testLocation = "https://overclothing.com/wp-content/uploads/sites/3/2020/09/night-on-fire-mens-white-a-3-600x600.jpg";
+            //var test = "https://hetsteigerhouthuis.nl/wp-content/uploads/2020/04/IMG_4896.jpg";
 
             List<AfostoImageModelAfterUpload> imageList = new List<AfostoImageModelAfterUpload>();
 
@@ -133,23 +128,28 @@ namespace TPMApi.Middelware
             {
                 using (var form = new MultipartFormDataContent())
                 {
-                    if (httpClient.GetByteArrayAsync(imageObjectList[0].src).IsCompletedSuccessfully)
-                    {
-                        byte[] imageBytes = await httpClient.GetByteArrayAsync(imageObjectList[0].src);
+                    var testRun = httpClient.GetAsync(imageObjectList[0].src).Result;
 
-                        using (var fileContent = new ByteArrayContent(imageBytes))
-                        {
-                            fileContent.Headers.ContentType = MediaTypeHeaderValue.Parse("multipart/form-data");
+                    if (testRun.IsSuccessStatusCode)
+                    { 
+                        foreach (var imageObject in imageObjectList)
+                        { 
+                            byte[] imageBytes = await httpClient.GetByteArrayAsync(imageObject.src);
 
-                            form.Add(fileContent, "file", Path.GetFileName(testLocation));
-                            HttpResponseMessage response = httpClient.PostAsync(url, form).Result;
-
-                            if (response.IsSuccessStatusCode)
+                            using (var fileContent = new ByteArrayContent(imageBytes))
                             {
-                                string body = await response.Content.ReadAsStringAsync();
-                                var customModel = JsonConvert.DeserializeObject<AfostoImageModelAfterUpload>(body);
+                                fileContent.Headers.ContentType = MediaTypeHeaderValue.Parse("multipart/form-data");
 
-                                imageList.Add(customModel);
+                                form.Add(fileContent, "file", Path.GetFileName(imageObject.src));
+                                HttpResponseMessage response = httpClient.PostAsync(url, form).Result;
+
+                                if (response.IsSuccessStatusCode)
+                                {
+                                    string body = await response.Content.ReadAsStringAsync();
+                                    var customModel = JsonConvert.DeserializeObject<AfostoImageModelAfterUpload>(body);
+
+                                    imageList.Add(customModel);
+                                }
                             }
                         }
                     }
