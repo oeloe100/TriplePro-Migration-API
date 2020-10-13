@@ -1,8 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using TPMApi.Helpers;
 using TPMHelper.AfostoHelper.Algorithms;
 using TPMHelper.AfostoHelper.ProductModel;
@@ -17,6 +15,8 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
         public JToken TaxClass;
         public List<Items> Items;
 
+        private List<Dictionary<string, string>> _optionsList;
+
         public SteigerhoutCustomOptionsBuilder(
             Product product,
             List<JArray> afostoProductRequirements,
@@ -28,7 +28,7 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
         }
 
         public void BuildCustomOptions(
-            List<Items> items, 
+            List<Items> items,
             List<Variation> variations)
         {
             Items = items;
@@ -50,8 +50,8 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
             {
                 if (attr.variation == true &&
                     attr.visible == false &&
-                    attr.name.ToLower() != "afwerkingen" && 
-                    attr.name.ToLower() != "afwerkingen blad" && 
+                    attr.name.ToLower() != "afwerkingen" &&
+                    attr.name.ToLower() != "afwerkingen blad" &&
                     attr.name.ToLower() != "Lange kant boomstam/recht")
                 {
                     CombinationsList.Add(attr.options.ToList());
@@ -66,9 +66,9 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
             List<Items> itemsList,
             List<List<string>> result)
         {
-            foreach (var combinations in result)
-            { 
-                var option = SortKeyValuePairByOrigin(combinations);
+            for (var i = 0; i < result.Count; i++)
+            {
+                var option = SortKeyValuePairByOrigin(result[i]);
 
                 var item = new Items()
                 {
@@ -88,26 +88,22 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
 
         public List<Dictionary<string, string>> SortKeyValuePairByOrigin(List<string> combination)
         {
-            List<Dictionary<string, string>> optionsList = new List<Dictionary<string, string>>();
+            _optionsList = new List<Dictionary<string, string>>();
 
             foreach (var option in combination)
             {
-                if (optionsList.Count < combination.Count)
-                { 
+                if (_optionsList.Count < combination.Count)
+                {
                     var coatingChallange = SteigerhoutOptionsData.CoationgOptions().Where(a => a == option);
                     if (IsAny(coatingChallange))
                     {
-                        var dict = new Dictionary<string, string>();
-                        dict.Add("coating", option);
-                        optionsList.Add(dict);
+                        ManagePriceAndOptionsList("coating", option);
                     }
 
                     var washingChallange = SteigerhoutOptionsData.WashingOptions().Where(a => a == option);
                     if (IsAny(washingChallange))
                     {
-                        var dict = new Dictionary<string, string>();
-                        dict.Add("washing", option);
-                        optionsList.Add(dict);
+                        ManagePriceAndOptionsList("washing", option);
                     }
 
                     for (var i = 0; i < Product.attributes.Count; i++)
@@ -117,16 +113,28 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
                             var attribute = Product.attributes[i].options.Where(a => a == option);
                             if (IsAny(attribute))
                             {
-                                var dict = new Dictionary<string, string>();
-                                dict.Add(Product.attributes[i].name, option);
-                                optionsList.Add(dict);
+                                ManagePriceAndOptionsList(
+                                    Product.attributes[i].name,
+                                    option);
                             }
                         }
                     }
                 }
             }
 
-            return optionsList;
+            return _optionsList;
+        }
+
+        public void ManagePriceAndOptionsList(
+            string type,
+            string option)
+        {
+            var dict = new Dictionary<string, string>
+            {
+                { type, option }
+            };
+
+            _optionsList.Add(dict);
         }
 
         public bool IsAny<T>(IEnumerable<T> data)
@@ -166,7 +174,7 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
             List<Options> options = new List<Options>();
 
             foreach (var item in dictList)
-            { 
+            {
                 foreach (KeyValuePair<string, string> kvp in item)
                 {
                     var option = new Options()

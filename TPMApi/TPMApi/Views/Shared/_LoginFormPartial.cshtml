@@ -3,11 +3,11 @@
     <form class="login_form" asp-controller="Account" asp-action="Login" method="post">
         <div class="main_login">
             Email:
-            <input asp-for="Email" /> <br />
+            <input class="form-control" asp-for="Email" /> <br />
         </div>
         <div class="main_password">
             Password:
-            <input type="password" asp-for="Password" /><br />
+            <input class="form-control" type="password" asp-for="Password" /><br />
         </div>
         <button class="main_submit btn-danger" type="submit">Login</button>
     </form>

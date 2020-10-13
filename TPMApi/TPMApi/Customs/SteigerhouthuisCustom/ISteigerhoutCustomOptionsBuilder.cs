@@ -27,5 +27,7 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
         List<Options> BuildOptions(List<Dictionary<string, string>> dictList);
 
         void ItemPriceAdjustment(Items item);
+
+        void ManagePriceAndOptionsList(string type, string option);
     }
 }

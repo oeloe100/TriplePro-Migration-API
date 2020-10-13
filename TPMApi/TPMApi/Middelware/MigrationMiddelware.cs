@@ -65,7 +65,7 @@ namespace TPMApi.Middelware
                 if (!result.IsSuccessStatusCode)
                 {
                     string body = await result.Content.ReadAsStringAsync();
-                    logger.LogInformation(body);
+                    logger.LogError(body);
                 }
             }
             catch (Exception ex)
