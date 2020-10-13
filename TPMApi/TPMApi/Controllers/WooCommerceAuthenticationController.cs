@@ -1,11 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using TPMApi.Models;
-using TPMApi.Services;
 using TPMDataLibrary.BusinessLogic;
 
 namespace TPMApi.Controllers
@@ -14,11 +13,14 @@ namespace TPMApi.Controllers
     public class WooCommerceAuthenticationController : Controller
     {
         private static UserManager<IdentityUser> _userManager;
+        private readonly ILogger<WooCommerceAuthenticationController> _logger;
 
         public WooCommerceAuthenticationController(
-            UserManager<IdentityUser> userManager)
+            UserManager<IdentityUser> userManager,
+            ILogger<WooCommerceAuthenticationController> logger)
         {
             _userManager = userManager;
+            _logger = logger;
         }
 
         public IActionResult Index()
@@ -51,10 +53,11 @@ namespace TPMApi.Controllers
                     WooDataProcessor.InsertAccessData(wooAccessModel);
                 }
 
-                return Ok("Https://" + this.Request.Host + "/Migration/Index");
+                return Ok($"{ this.Request.Scheme }://{ this.Request.Host }/Migration/Index");
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message + ex.StackTrace);
                 return BadRequest(ex);
             }
         }

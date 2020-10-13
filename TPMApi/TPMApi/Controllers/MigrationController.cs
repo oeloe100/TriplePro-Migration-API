@@ -60,8 +60,6 @@ namespace TPMApi.Controllers
         /// <returns></returns>
         public async Task<ContentResult> StartWTAMigration(List<string> specialsArray)
         {
-            var index = 0;
-
             try
             {
                 //Get WooCommerce Shop product count trough Legacy WCObject
@@ -72,12 +70,8 @@ namespace TPMApi.Controllers
                 for (var i = 1; i <= pageCount;)
                 {
                     //Get Product from WooCOmmerce Rest Api based on page/product count
-                    var wcProductList = await GetWCProducts(i, _pageSize);
-
-                    foreach (var wcProduct in wcProductList)
+                    foreach (var wcProduct in await GetWCProducts(i, _pageSize))
                     {
-                        index++;
-
                         //First we check if we have included a customOption if so we create an instance.
                         await IncludeCustomOptions(specialsArray, wcProduct);
 
@@ -86,6 +80,7 @@ namespace TPMApi.Controllers
                                 AfostoDataProcessor.GetLastAccessToken()[0],
                                 _wcRestAPI, _env, wcProduct.images);
 
+                        //We build the afosto product model;
                         IAfostoProductBuilder afostoProductBuilder = new AfostoProductBuilder(
                             await Requirements(), await GetTaxClass(), _steigerhoutCustomOptionsBuilder, 
                             _config, wcProduct, _wcObject, imageResult);
@@ -96,7 +91,7 @@ namespace TPMApi.Controllers
                         //Post the model we build to Afosto as Json
                         await MigrationMiddelware.BuildWTAMappingModel(
                             AfostoDataProcessor.GetLastAccessToken()[0],
-                            mappingData, _config, _logger, index, wcProduct.id);
+                            mappingData, _config, _logger, wcProduct.id);
 
                         Console.WriteLine();
                     }
@@ -113,6 +108,12 @@ namespace TPMApi.Controllers
             }
         }
 
+        /// <summary>
+        /// Do we have custom options selected? if so we create instance here and return true;
+        /// </summary>
+        /// <param name="includedOptions"></param>
+        /// <param name="product"></param>
+        /// <returns></returns>
         private async Task IncludeCustomOptions(List<string> includedOptions, Product product)
         {
             foreach (var option in includedOptions)
@@ -125,6 +126,10 @@ namespace TPMApi.Controllers
             }
         }
 
+        /// <summary>
+        /// If migration is completed we return html
+        /// </summary>
+        /// <returns></returns>
         private ContentResult OnMigrationCompleted()
         {
             return new ContentResult
@@ -135,6 +140,11 @@ namespace TPMApi.Controllers
             };
         }
 
+        /// <summary>
+        /// if migration has failed we return html
+        /// </summary>
+        /// <param name="ex"></param>
+        /// <returns></returns>
         private ContentResult OnMigrationFailed(Exception ex)
         {
             return new ContentResult

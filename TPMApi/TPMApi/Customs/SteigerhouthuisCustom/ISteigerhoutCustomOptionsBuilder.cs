@@ -14,7 +14,7 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
 
         void SetCustomItems(
             List<Items> itemsList,
-            List<string> combinations);
+            List<List<string>> result);
 
         List<Dictionary<string, string>> SortKeyValuePairByOrigin(List<string> combination);
 

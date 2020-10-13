@@ -19,7 +19,6 @@ namespace TPMApi.Middelware
 {
     public class MigrationMiddelware
     {
-        private static int? _index;
         private static int? _currentProductId;
 
         /// <summary>
@@ -34,10 +33,8 @@ namespace TPMApi.Middelware
             JObject productsMapped,
             IOptions<AuthorizationPoco> config,
             ILogger<MigrationController> logger,
-            int index,
             int? productId)
         {
-            _index = index;
             _currentProductId = productId;
 
             await PostAfostoProductModel("/products", config, logger, accessToken, productsMapped);
@@ -64,14 +61,11 @@ namespace TPMApi.Middelware
 
             try
             {
-                var result = await apiClient.AfostoClient.PostAsync(requestUriString, content);
-                if (result.IsSuccessStatusCode)
+                HttpResponseMessage result = await apiClient.AfostoClient.PostAsync(requestUriString, content);
+                if (!result.IsSuccessStatusCode)
                 {
-                    logger.LogInformation("Migration Success for id: " + _currentProductId);
-                }
-                else
-                {
-                    logger.LogWarning("Migration Problem for id: " + _currentProductId);
+                    string body = await result.Content.ReadAsStringAsync();
+                    logger.LogInformation(body);
                 }
             }
             catch (Exception ex)
@@ -80,7 +74,7 @@ namespace TPMApi.Middelware
                 logger.LogCritical(ex.StackTrace);
             }
 
-            logger.LogInformation("Current index: " + _index);
+            logger.LogInformation("Success for Id: " + _currentProductId);
         }
 
         /// <summary>

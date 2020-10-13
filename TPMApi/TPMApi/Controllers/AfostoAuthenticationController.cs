@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
 using System;
@@ -18,13 +19,16 @@ namespace TPMApi.Controllers
     {
         private static IOptions<AuthorizationPoco> _config;
         private static UserManager<IdentityUser> _userManager;
+        private readonly ILogger<AfostoAuthenticationController> _logger;
 
         public AfostoAuthenticationController(
             IOptions<AuthorizationPoco> config,
-            UserManager<IdentityUser> userManager)
+            UserManager<IdentityUser> userManager,
+            ILogger<AfostoAuthenticationController> logger)
         {
             _config = config;
             _userManager = userManager;
+            _logger = logger;
         }
 
         /// <summary>
@@ -76,11 +80,12 @@ namespace TPMApi.Controllers
                     }
 
                     //We return the URL for WooCommerce Authentication
-                    return Ok("Https://" + this.Request.Host + "/WooCommerceAuthentication/Index");
+                    return Ok($"{ this.Request.Scheme }://{ this.Request.Host }/WooCommerceAuthentication/Index");
 
                 }
                 catch (Exception ex)
                 {
+                    _logger.LogError(ex.Message + ex.StackTrace);
                     return BadRequest(ex.Message + ex.StackTrace);
                 }
             }
@@ -128,24 +133,12 @@ namespace TPMApi.Controllers
                 }
                 catch (Exception ex)
                 {
+                    _logger.LogError(ex.Message + ex.StackTrace);
                     return BadRequest(ex);
                 }
             }
 
             return BadRequest();
         }
-
-        /*
-        private async Task<List<Product>> GetWCProducts(int page, int productPerPage)
-        {
-            var wcProducts = await _wcObject.Product.GetAll(new Dictionary<string, string>()
-            {
-                { "per_page", productPerPage.ToString()},
-                { "page", page.ToString()}
-            });
-
-            return wcProducts;
-        }
-        */
     }
 }

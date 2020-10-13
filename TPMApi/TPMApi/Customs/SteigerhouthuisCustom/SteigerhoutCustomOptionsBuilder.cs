@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using TPMApi.Helpers;
 using TPMHelper.AfostoHelper.Algorithms;
 using TPMHelper.AfostoHelper.ProductModel;
@@ -35,21 +36,23 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
             IGAPCG iGapCG = new GAPCGAlgorithm();
 
             List<List<string>> CombinationsList = new List<List<string>>();
+
             FillComboList(CombinationsList);
 
             var result = iGapCG.GAPCG(CombinationsList);
 
-            foreach (var combination in result)
-            {
-                SetCustomItems(items, combination);
-            }
+            SetCustomItems(items, result);
         }
 
         public void FillComboList(List<List<string>> CombinationsList)
         {
             foreach (var attr in Product.attributes)
             {
-                if (attr.variation == true)
+                if (attr.variation == true &&
+                    attr.visible == false &&
+                    attr.name.ToLower() != "afwerkingen" && 
+                    attr.name.ToLower() != "afwerkingen blad" && 
+                    attr.name.ToLower() != "Lange kant boomstam/recht")
                 {
                     CombinationsList.Add(attr.options.ToList());
                 }
@@ -61,25 +64,26 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
 
         public void SetCustomItems(
             List<Items> itemsList,
-            List<string> combinations)
+            List<List<string>> result)
         {
-            var option = SortKeyValuePairByOrigin(combinations);
+            foreach (var combinations in result)
+            { 
+                var option = SortKeyValuePairByOrigin(combinations);
 
-            var item = new Items()
-            {
-                Ean = AfostoProductBuildingHelpers.EanCheck(null),
-                Sku = AfostoProductBuildingHelpers.SKUGenerator(Product,
-                            AfostoProductBuildingHelpers.UniqueShortNumberGenerator()),
-                Inventory = SetCustomInventory(0),
-                Prices = SetCustomPrices(0),
-                Options = BuildOptions(option),
-                Suffix = null
-            };
+                var item = new Items()
+                {
+                    Ean = AfostoProductBuildingHelpers.EanCheck(null),
+                    Sku = AfostoProductBuildingHelpers.SKUGenerator(Product,
+                                AfostoProductBuildingHelpers.UniqueShortNumberGenerator()),
+                    Inventory = SetCustomInventory(0),
+                    Prices = SetCustomPrices(0),
+                    Options = BuildOptions(option),
+                    Suffix = null
+                };
 
-            ItemPriceAdjustment(item);
-            itemsList.Add(item);
-
-            Console.WriteLine();
+                ItemPriceAdjustment(item);
+                itemsList.Add(item);
+            }
         }
 
         public List<Dictionary<string, string>> SortKeyValuePairByOrigin(List<string> combination)

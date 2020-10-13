@@ -27,13 +27,11 @@ namespace TPMApi.Builder.Afosto
         Product IAfostoWCRequirements.Product => Product;
         WCObject IAfostoWCRequirements.WCObject => WCObject;
 
-        //private readonly ISteigerhoutCustomOptions _steigerhoutCustomOptions;
         private readonly ISteigerhoutCustomOptionsBuilder _steigerhoutCustomOptionsBuilder;
 
         public AfostoProductBuilder(
             List<JArray> afostoProductRequirements,
             JToken taxClass,
-            //ISteigerhoutCustomOptions steigerhoutCustomOptions,
             ISteigerhoutCustomOptionsBuilder steigerhoutCustomOptionsBuilder,
             IOptions<AuthorizationPoco> config,
             Product product,
@@ -41,7 +39,6 @@ namespace TPMApi.Builder.Afosto
             List<AfostoImageModelAfterUpload> imageResult)
         {
             AfostoProductRequirements = afostoProductRequirements;
-            //_steigerhoutCustomOptions = steigerhoutCustomOptions;
             _steigerhoutCustomOptionsBuilder = steigerhoutCustomOptionsBuilder;
             TaxClass = taxClass;
             Config = config;
@@ -105,12 +102,9 @@ namespace TPMApi.Builder.Afosto
         {
             var items = new List<Items>();
             var variations = await WooProdVariations();
+            var active = HasActiveCustoms(items, variations);
 
-            if (_steigerhoutCustomOptionsBuilder != null)
-            { 
-                _steigerhoutCustomOptionsBuilder.BuildCustomOptions(items, variations);
-            }
-            else
+            if (!active)
             { 
                 //Get variation in variations
                 foreach (var variation in variations)
@@ -286,6 +280,19 @@ namespace TPMApi.Builder.Afosto
                 });
 
             return wcCollections;
+        }
+
+        public bool HasActiveCustoms(
+            List<Items> items, 
+            List<Variation> variations)
+        {
+            if (_steigerhoutCustomOptionsBuilder != null)
+            {
+                _steigerhoutCustomOptionsBuilder.BuildCustomOptions(items, variations);
+                return true;
+            }
+
+            return false;
         }
     }
 }

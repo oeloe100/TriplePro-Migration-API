@@ -21,5 +21,8 @@ namespace TPMApi.Builder.Afosto
         List<Specifications> SetSpecifications();
         Task<List<ProductCategory>> WooCategories();
         Task<List<Variation>> WooProdVariations();
+        bool HasActiveCustoms(
+            List<Items> items, 
+            List<Variation> variations);
     }
 }

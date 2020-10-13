@@ -232,6 +232,16 @@ body {
     display: block !important;
 }
 
+.fa-sync,
+.fa-cog {
+    color: #11283c;
+}
+
+.fa-settings {
+    position: absolute;
+    top: -47px;
+}
+
 .woo-form-authorize,
 .afosto-form-authorize {
     width: 150px;

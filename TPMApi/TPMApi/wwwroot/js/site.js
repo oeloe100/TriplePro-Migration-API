@@ -15,6 +15,10 @@ $(function () {
     }, 1000); // 1000 to load it after 1 seconds from page load
 });
 
+$(".fa-settings").on("click", function () {
+    PopUp();
+});
+
 function PopUp() {
     if ($(".modal").css("display") == "none") {
         $(".modal").css("display", "block");
