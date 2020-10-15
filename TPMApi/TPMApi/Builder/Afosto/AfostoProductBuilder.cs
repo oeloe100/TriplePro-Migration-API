@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using TPMApi.Builder.Afosto.Requirements;
@@ -28,6 +29,7 @@ namespace TPMApi.Builder.Afosto
         WCObject IAfostoWCRequirements.WCObject => WCObject;
 
         private readonly ISteigerhoutCustomOptionsBuilder _steigerhoutCustomOptionsBuilder;
+        private List<long> _usedIds;
 
         public AfostoProductBuilder(
             List<JArray> afostoProductRequirements,
@@ -36,7 +38,8 @@ namespace TPMApi.Builder.Afosto
             IOptions<AuthorizationPoco> config,
             Product product,
             WCObject wcObject,
-            List<AfostoImageModelAfterUpload> imageResult)
+            List<AfostoImageModelAfterUpload> imageResult,
+            List<long> usedIds)
         {
             AfostoProductRequirements = afostoProductRequirements;
             _steigerhoutCustomOptionsBuilder = steigerhoutCustomOptionsBuilder;
@@ -45,6 +48,7 @@ namespace TPMApi.Builder.Afosto
             Product = product;
             WCObject = wcObject;
             ImageResult = imageResult;
+            _usedIds = usedIds;
         }
 
         /*--------------- DESCRIPTORS ---------------*/
@@ -105,21 +109,21 @@ namespace TPMApi.Builder.Afosto
             var active = HasActiveCustoms(items, variations);
 
             if (!active)
-            { 
+            {
                 //Get variation in variations
-                foreach (var variation in variations)
+                for (var i = 0; i < variations.Count; i++)
                 {
                     //Check if we have enough attributes to build variations/items
-                    if (variation.attributes.Count > 0)
+                    if (variations[i].attributes.Count > 0)
                     {
                         //Default way of building items.
                         var item = new Items()
                         {
-                            Ean = AfostoProductBuildingHelpers.EanCheck(variation.sku),
-                            Sku = AfostoProductBuildingHelpers.SKUGenerator(Product, variation.id),
-                            Inventory = SetInventory(variation),
-                            Prices = SetPrices(variation),
-                            Options = SetOptions(variation),
+                            Ean = AfostoProductBuildingHelpers.EAN13Sum(_usedIds),
+                            Sku = AfostoProductBuildingHelpers.SKUGenerator(Product, variations[i].id),
+                            Inventory = SetInventory(variations[i]),
+                            Prices = SetPrices(variations[i]),
+                            Options = SetOptions(variations[i]),
                             Suffix = null,
                         };
 
@@ -230,18 +234,23 @@ namespace TPMApi.Builder.Afosto
         {
             var specs = new List<Specifications>();
 
-            var wooSpecs = Product.attributes;
-            foreach (var wooSpec in wooSpecs)
-            {
-                foreach (var option in wooSpec.options)
-                {
-                    var spec = new Specifications()
-                    {
-                        Key = wooSpec.name.Split(".")[0],
-                        Value = option
-                    };
+            var attributes = Product.attributes;
 
-                    specs.Add(spec);
+            foreach (var attribute in attributes)
+            {
+                if (attribute.variation == false && 
+                    attribute.visible == true)
+                { 
+                    foreach (var option in attribute.options)
+                    {
+                        var spec = new Specifications()
+                        {
+                            Key = attribute.name,
+                            Value = option
+                        };
+
+                        specs.Add(spec);
+                    }
                 }
             }
 

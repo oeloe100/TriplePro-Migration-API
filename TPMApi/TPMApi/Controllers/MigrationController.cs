@@ -33,6 +33,7 @@ namespace TPMApi.Controllers
         private static WooAccessModel _wooAccessModel;
 
         private static readonly int _pageSize = 100;
+        private static List<long> _usedIds;
 
         public MigrationController(
             IOptions<AuthorizationPoco> config,
@@ -43,6 +44,7 @@ namespace TPMApi.Controllers
             _logger = logger;
             _env = env;
             _wtaMapping = new AfostoMigrationModelBuilder(config, logger);
+            _usedIds = new List<long>();
 
             //Get for ex. Accesstoken etc. from Db.
             _wooAccessModel = WooDataProcessor.GetLastAccessData()[0];
@@ -69,9 +71,8 @@ namespace TPMApi.Controllers
 
                 for (var i = 1; i <= pageCount;)
                 {
-                    //Get Product from WooCOmmerce Rest Api based on page/product count
                     foreach (var wcProduct in await GetWCProducts(i, _pageSize))
-                    {
+                    { 
                         //First we check if we have included a customOption if so we create an instance.
                         await IncludeCustomOptions(specialsArray, wcProduct);
 
@@ -83,7 +84,7 @@ namespace TPMApi.Controllers
                         //We build the afosto product model;
                         IAfostoProductBuilder afostoProductBuilder = new AfostoProductBuilder(
                             await Requirements(), await GetTaxClass(), _steigerhoutCustomOptionsBuilder, 
-                            _config, wcProduct, _wcObject, imageResult);
+                            _config, wcProduct, _wcObject, imageResult, _usedIds);
 
                         //Build the actual model we post to afosto
                         var mappingData = await _wtaMapping.BuildAfostoMigrationModel(afostoProductBuilder);
@@ -92,8 +93,6 @@ namespace TPMApi.Controllers
                         await MigrationMiddelware.BuildWTAMappingModel(
                             AfostoDataProcessor.GetLastAccessToken()[0],
                             mappingData, _config, _logger, wcProduct.id);
-
-                        Console.WriteLine();
                     }
 
                     i++;
@@ -121,7 +120,7 @@ namespace TPMApi.Controllers
                 if (option.ToLower().Contains("steigerhout"))
                 {
                     _steigerhoutCustomOptionsBuilder = new SteigerhoutCustomOptionsBuilder(
-                        product, await Requirements(), await GetTaxClass());
+                        product, await Requirements(), await GetTaxClass(), _usedIds);
                 }
             }
         }

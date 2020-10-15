@@ -14,20 +14,15 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
 
         void SetCustomItems(
             List<Items> itemsList,
-            List<List<string>> result);
-
-        List<Dictionary<string, string>> SortKeyValuePairByOrigin(List<string> combination);
-
-        bool IsAny<T>(IEnumerable<T> data);
+            List<List<string>> result,
+            List<Variation> variations);
 
         Inventory SetCustomInventory(int total);
 
-        List<Prices> SetCustomPrices(decimal? price);
-
         List<Options> BuildOptions(List<Dictionary<string, string>> dictList);
 
-        void ItemPriceAdjustment(Items item);
+        List<Prices> SetCustomPrices(decimal? price);
 
-        void ManagePriceAndOptionsList(string type, string option);
+        void ItemPriceAdjustment(Items item);
     }
 }

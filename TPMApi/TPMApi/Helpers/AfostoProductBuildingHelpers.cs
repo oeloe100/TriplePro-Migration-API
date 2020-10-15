@@ -24,6 +24,35 @@ namespace TPMApi.Helpers
             return sourceEan;
         }
 
+        public static string EAN13Sum(List<long> usedIds)
+        {
+            string baseEan13 = $"9700000000000";
+            var ean = Convert.ToInt64(baseEan13);
+
+            if (usedIds.Count <= 0)
+            { 
+                usedIds.Add(ean);
+                return ean.ToString();
+            }
+
+            var lastUsedId = usedIds.Last();
+
+            var newId = lastUsedId += 1;
+            usedIds.Add(newId);
+
+            return newId.ToString();
+        }
+
+        private static string Truncate(this string value, int maxLength)
+        { 
+            if (string.IsNullOrEmpty(value)) 
+            { 
+                return value; 
+            }
+
+            return value.Substring(0, Math.Min(value.Length, maxLength));
+        }
+
         /// <summary>
         /// Generate Custom Random EAN Number.
         /// </summary>

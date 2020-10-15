@@ -67,14 +67,16 @@ namespace TPMApi.Middelware
                     string body = await result.Content.ReadAsStringAsync();
                     logger.LogError(body);
                 }
+                else
+                {
+                    logger.LogInformation("Success for Id: " + _currentProductId);
+                }
             }
             catch (Exception ex)
             {
                 logger.LogCritical(ex.Message);
                 logger.LogCritical(ex.StackTrace);
             }
-
-            logger.LogInformation("Success for Id: " + _currentProductId);
         }
 
         /// <summary>

@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using TPMApi.Helpers;
@@ -15,16 +16,24 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
         public JToken TaxClass;
         public List<Items> Items;
 
-        private List<Dictionary<string, string>> _optionsList;
+        private List<long> _usedIds;
+
+        private readonly ISortKVP<List<string>> _sortKVP;
+        private readonly IPriceCalculator<List<Dictionary<string, string>>> _priceCalculator;
 
         public SteigerhoutCustomOptionsBuilder(
             Product product,
             List<JArray> afostoProductRequirements,
-            JToken taxClass)
+            JToken taxClass,
+            List<long> usedIds)
         {
             Product = product;
             AfostoProductRequirements = afostoProductRequirements;
             TaxClass = taxClass;
+            _usedIds = usedIds;
+
+            _sortKVP = new SortKVP(product);
+            _priceCalculator = new PriceCalculator(product);
         }
 
         public void BuildCustomOptions(
@@ -41,7 +50,7 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
 
             var result = iGapCG.GAPCG(CombinationsList);
 
-            SetCustomItems(items, result);
+            SetCustomItems(items, result, variations);
         }
 
         public void FillComboList(List<List<string>> CombinationsList)
@@ -64,82 +73,27 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
 
         public void SetCustomItems(
             List<Items> itemsList,
-            List<List<string>> result)
+            List<List<string>> result,
+            List<Variation> variations)
         {
             for (var i = 0; i < result.Count; i++)
             {
-                var option = SortKeyValuePairByOrigin(result[i]);
+                var option = _sortKVP.SortKeyValuePairByOrigin(result[i]);
+                var price = _priceCalculator.Price(option, variations);
 
                 var item = new Items()
                 {
-                    Ean = AfostoProductBuildingHelpers.EanCheck(null),
-                    Sku = AfostoProductBuildingHelpers.SKUGenerator(Product,
-                                AfostoProductBuildingHelpers.UniqueShortNumberGenerator()),
+                    Ean = AfostoProductBuildingHelpers.EAN13Sum(_usedIds),
+                    Sku = AfostoProductBuildingHelpers.SKUGenerator(Product, i),
                     Inventory = SetCustomInventory(0),
-                    Prices = SetCustomPrices(0),
                     Options = BuildOptions(option),
+                    Prices = SetCustomPrices(price),
                     Suffix = null
                 };
 
                 ItemPriceAdjustment(item);
                 itemsList.Add(item);
             }
-        }
-
-        public List<Dictionary<string, string>> SortKeyValuePairByOrigin(List<string> combination)
-        {
-            _optionsList = new List<Dictionary<string, string>>();
-
-            foreach (var option in combination)
-            {
-                if (_optionsList.Count < combination.Count)
-                {
-                    var coatingChallange = SteigerhoutOptionsData.CoationgOptions().Where(a => a == option);
-                    if (IsAny(coatingChallange))
-                    {
-                        ManagePriceAndOptionsList("coating", option);
-                    }
-
-                    var washingChallange = SteigerhoutOptionsData.WashingOptions().Where(a => a == option);
-                    if (IsAny(washingChallange))
-                    {
-                        ManagePriceAndOptionsList("washing", option);
-                    }
-
-                    for (var i = 0; i < Product.attributes.Count; i++)
-                    {
-                        if (Product.attributes[i].variation == true)
-                        {
-                            var attribute = Product.attributes[i].options.Where(a => a == option);
-                            if (IsAny(attribute))
-                            {
-                                ManagePriceAndOptionsList(
-                                    Product.attributes[i].name,
-                                    option);
-                            }
-                        }
-                    }
-                }
-            }
-
-            return _optionsList;
-        }
-
-        public void ManagePriceAndOptionsList(
-            string type,
-            string option)
-        {
-            var dict = new Dictionary<string, string>
-            {
-                { type, option }
-            };
-
-            _optionsList.Add(dict);
-        }
-
-        public bool IsAny<T>(IEnumerable<T> data)
-        {
-            return data != null && data.Any();
         }
 
         public Inventory SetCustomInventory(int total)
@@ -151,22 +105,6 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
             };
 
             return inventory;
-        }
-
-        public List<Prices> SetCustomPrices(decimal? price)
-        {
-            Prices priceModel = new Prices()
-            {
-                Price = price,
-                IsEnabled = true,
-                TaxClass = TaxClass,
-                Price_Group = AfostoProductRequirements[3]
-            };
-
-            List<Prices> prices = new List<Prices>();
-            prices.Add(priceModel);
-
-            return prices;
         }
 
         public List<Options> BuildOptions(List<Dictionary<string, string>> dictList)
@@ -188,6 +126,22 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
             }
 
             return options;
+        }
+
+        public List<Prices> SetCustomPrices(decimal? price)
+        {
+            Prices priceModel = new Prices()
+            {
+                Price = price,
+                IsEnabled = true,
+                TaxClass = TaxClass,
+                Price_Group = AfostoProductRequirements[3]
+            };
+
+            List<Prices> prices = new List<Prices>();
+            prices.Add(priceModel);
+
+            return prices;
         }
 
         public void ItemPriceAdjustment(Items item)
