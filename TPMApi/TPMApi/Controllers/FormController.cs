@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace TPMApi.Controllers
 {
+    [Authorize]
     public class FormController : Controller
     {
         /// <summary>

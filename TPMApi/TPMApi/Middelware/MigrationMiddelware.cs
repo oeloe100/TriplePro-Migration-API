@@ -65,11 +65,13 @@ namespace TPMApi.Middelware
                 if (!result.IsSuccessStatusCode)
                 {
                     string body = await result.Content.ReadAsStringAsync();
+                    logger.LogInformation("Fail with ID: " + _currentProductId);
+
                     logger.LogError(body);
                 }
                 else
                 {
-                    logger.LogInformation("Success for Id: " + _currentProductId);
+                    logger.LogInformation("Success with ID: " + _currentProductId);
                 }
             }
             catch (Exception ex)
@@ -77,6 +79,8 @@ namespace TPMApi.Middelware
                 logger.LogCritical(ex.Message);
                 logger.LogCritical(ex.StackTrace);
             }
+
+            logger.LogInformation("Next");
         }
 
         /// <summary>

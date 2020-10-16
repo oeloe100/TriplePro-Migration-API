@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -19,6 +20,7 @@ using WooCommerceNET.WooCommerce.v3;
 
 namespace TPMApi.Controllers
 {
+    [Authorize]
     public class MigrationController : Controller
     {
         private static IOptions<AuthorizationPoco> _config;

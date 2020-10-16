@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
@@ -9,6 +10,7 @@ using TPMApi.Models;
 
 namespace TPMApi.Controllers
 {
+    [AllowAnonymous]
     public class RegisterController : Controller
     {
         private readonly SignInManager<IdentityUser> _signInManager;

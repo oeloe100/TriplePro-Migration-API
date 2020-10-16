@@ -14,6 +14,7 @@ using TPMApi.Data;
 
 namespace TPMApi.Controllers
 {
+    [Authorize]
     public class TokenController : Controller
     {
         private readonly IConfiguration _config;
