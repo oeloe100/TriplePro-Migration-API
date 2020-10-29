@@ -23,6 +23,6 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
 
         List<Prices> SetCustomPrices(decimal? price);
 
-        void ItemPriceAdjustment(Items item);
+        /*void ItemPriceAdjustment(Items item);*/
     }
 }

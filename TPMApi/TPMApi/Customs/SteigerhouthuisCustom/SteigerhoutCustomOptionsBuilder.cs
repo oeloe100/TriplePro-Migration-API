@@ -91,7 +91,7 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
                     Suffix = null
                 };
 
-                ItemPriceAdjustment(item);
+                //ItemPriceAdjustment(item);
                 itemsList.Add(item);
             }
         }
@@ -133,6 +133,7 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
             Prices priceModel = new Prices()
             {
                 Price = price,
+                PriceGross = ((price / 121) * 100),
                 IsEnabled = true,
                 TaxClass = TaxClass,
                 Price_Group = AfostoProductRequirements[3]
@@ -144,7 +145,7 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
             return prices;
         }
 
-        public void ItemPriceAdjustment(Items item)
+        /*public void ItemPriceAdjustment(Items item)
         {
             foreach (var option in item.Options)
             {
@@ -156,6 +157,6 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
                     }
                 }
             }
-        }
+        }*/
     }
 }

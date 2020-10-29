@@ -1,8 +1,6 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace TPMHelper.AfostoHelper.ProductModel
 {
@@ -18,7 +16,7 @@ namespace TPMHelper.AfostoHelper.ProductModel
         public bool? Is_Backorder_Allowed { get; set; } = false;
         [JsonProperty("descriptors")]
         public List<Descriptors> Descriptors { get; set; }
-        [JsonProperty("specification")]
+        [JsonProperty("specifications")]
         public List<Specifications> Specifications { get; set; }
         [JsonProperty("items")]
         public List<Items> Items { get; set; }
