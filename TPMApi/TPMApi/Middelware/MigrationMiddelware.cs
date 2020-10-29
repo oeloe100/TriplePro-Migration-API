@@ -69,10 +69,6 @@ namespace TPMApi.Middelware
 
                     logger.LogError(body);
                 }
-                else
-                {
-                    logger.LogInformation("Success with ID: " + _currentProductId);
-                }
             }
             catch (Exception ex)
             {
@@ -80,7 +76,7 @@ namespace TPMApi.Middelware
                 logger.LogCritical(ex.StackTrace);
             }
 
-            logger.LogInformation("Next");
+            logger.LogInformation("Current: " + _currentProductId + " > Next > ");
         }
 
         /// <summary>
@@ -119,8 +115,8 @@ namespace TPMApi.Middelware
         {
             var apiClient = new AfostoHttpClient(accessToken);
             var url = "https://upload.afosto.com/v2/product";
-            //var testLocation = "https://overclothing.com/wp-content/uploads/sites/3/2020/09/night-on-fire-mens-white-a-3-600x600.jpg";
-            //var test = "https://hetsteigerhouthuis.nl/wp-content/uploads/2020/04/IMG_4896.jpg";
+            var testLocation = "https://overclothing.com/wp-content/uploads/sites/3/2020/09/night-on-fire-mens-white-a-3-600x600.jpg";
+            var test = "https://hetsteigerhouthuis.nl/wp-content/uploads/2020/04/IMG_4896.jpg";
 
             List<AfostoImageModelAfterUpload> imageList = new List<AfostoImageModelAfterUpload>();
 
