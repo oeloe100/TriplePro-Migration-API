@@ -108,46 +108,45 @@ namespace TPMApi.Middelware
 
         public static async Task<List<AfostoImageModelAfterUpload>> UploadImageToAfosto(
             string accessToken,
-            RestAPI wcRestAPI,
-            IWebHostEnvironment env,
+            ILogger<MigrationController> logger,
             List<ProductImage> imageObjectList,
             Dictionary<string, string> parms = null)
         {
             var apiClient = new AfostoHttpClient(accessToken);
             var url = "https://upload.afosto.com/v2/product";
-            var testLocation = "https://overclothing.com/wp-content/uploads/sites/3/2020/09/night-on-fire-mens-white-a-3-600x600.jpg";
-            var test = "https://hetsteigerhouthuis.nl/wp-content/uploads/2020/04/IMG_4896.jpg";
 
             List<AfostoImageModelAfterUpload> imageList = new List<AfostoImageModelAfterUpload>();
 
-            using (var httpClient = apiClient.AfostoClient)
+            for (var i = 0; i < imageObjectList.Count; i++) 
             {
-                using (var form = new MultipartFormDataContent())
-                {
-                    var testRun = httpClient.GetAsync(imageObjectList[0].src).Result;
+                var imgObject = apiClient.AfostoClient.GetAsync(imageObjectList[i].src).Result;
 
-                    if (testRun.IsSuccessStatusCode)
-                    { 
-                        foreach (var imageObject in imageObjectList)
-                        { 
-                            byte[] imageBytes = await httpClient.GetByteArrayAsync(imageObject.src);
+                if (imgObject.IsSuccessStatusCode)
+                { 
+                    byte[] imageBytes = await apiClient.AfostoClient.GetByteArrayAsync(imageObjectList[i].src);
 
-                            using (var fileContent = new ByteArrayContent(imageBytes))
-                            {
-                                fileContent.Headers.ContentType = MediaTypeHeaderValue.Parse("multipart/form-data");
+                    var fileContent = new ByteArrayContent(imageBytes);
+                    fileContent.Headers.ContentType = MediaTypeHeaderValue.Parse("multipart/form-data");
 
-                                form.Add(fileContent, "file", Path.GetFileName(imageObject.src));
-                                HttpResponseMessage response = httpClient.PostAsync(url, form).Result;
+                    var form = new MultipartFormDataContent();
+                    form.Add(fileContent, "file", Path.GetFileName(imageObjectList[i].name));
 
-                                if (response.IsSuccessStatusCode)
-                                {
-                                    string body = await response.Content.ReadAsStringAsync();
-                                    var customModel = JsonConvert.DeserializeObject<AfostoImageModelAfterUpload>(body);
+                    try
+                    {
+                        HttpResponseMessage response = apiClient.AfostoClient.PostAsync(url, form).Result;
 
-                                    imageList.Add(customModel);
-                                }
-                            }
+                        if (response.IsSuccessStatusCode)
+                        {
+                            string body = await response.Content.ReadAsStringAsync();
+                            var customModel = JsonConvert.DeserializeObject<AfostoImageModelAfterUpload>(body);
+
+                            imageList.Add(customModel);
                         }
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogCritical(ex.Message);
+                        logger.LogCritical(ex.StackTrace);
                     }
                 }
             }

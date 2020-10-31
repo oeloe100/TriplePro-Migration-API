@@ -233,8 +233,8 @@ namespace TPMApi.Builder.Afosto
         public List<Specifications> SetSpecifications()
         {
             var specs = new List<Specifications>();
-
             var attributes = Product.attributes;
+            var afostoCharacterLimit = 244;
 
             foreach (var attribute in attributes)
             {
@@ -243,13 +243,16 @@ namespace TPMApi.Builder.Afosto
                 { 
                     foreach (var option in attribute.options)
                     {
-                        var spec = new Specifications()
+                        if (option.Length > afostoCharacterLimit)
                         {
-                            Key = attribute.name,
-                            Value = option
-                        };
+                            var spec = new Specifications()
+                            {
+                                Key = attribute.name,
+                                Value = option.Substring(0, afostoCharacterLimit)
+                            };
 
-                        specs.Add(spec);
+                            specs.Add(spec);
+                        }
                     }
                 }
             }

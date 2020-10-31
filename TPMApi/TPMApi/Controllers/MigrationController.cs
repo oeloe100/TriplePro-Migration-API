@@ -71,6 +71,8 @@ namespace TPMApi.Controllers
                 //Calculate the amount of pages available
                 var pageCount = (int)Math.Ceiling((double)productCount / _pageSize);
 
+                //await Test(specialsArray);
+
                 for (var i = 1; i <= pageCount;)
                 {
                     foreach (var wcProduct in await GetWCProducts(i, _pageSize))
@@ -81,7 +83,7 @@ namespace TPMApi.Controllers
                         //We first upload the images to afosto. Then we use the given ID to connect product to image.
                         var imageResult = await MigrationMiddelware.UploadImageToAfosto(
                                 AfostoDataProcessor.GetLastAccessToken()[0],
-                                _wcRestAPI, _env, wcProduct.images);
+                                _logger, wcProduct.images);
 
                         //We build the afosto product model;
                         IAfostoProductBuilder afostoProductBuilder = new AfostoProductBuilder(
@@ -108,6 +110,48 @@ namespace TPMApi.Controllers
                 return OnMigrationFailed(ex);
             }
         }
+
+        /*async Task Test(List<string> specialsArray)
+        {
+            try
+            {
+                //Get WooCommerce Shop product count trough Legacy WCObject
+                var productCount = await _wcObjectLegacy.GetProductCount();
+                //Calculate the amount of pages available
+                var pageCount = (int)Math.Ceiling((double)productCount / _pageSize);
+
+                //var wcProduct = _wcObjectLegacy.GetProduct(9728).Result;
+                var wcProduct = _wcObject.Product.Get(9728).Result;
+
+                Console.WriteLine();
+                
+                //First we check if we have included a customOption if so we create an instance.
+                await IncludeCustomOptions(specialsArray, wcProduct);
+
+                //We first upload the images to afosto. Then we use the given ID to connect product to image.
+                var imageResult = await MigrationMiddelware.UploadImageToAfosto(
+                        AfostoDataProcessor.GetLastAccessToken()[0],
+                        _logger, wcProduct.images);
+
+                //We build the afosto product model;
+                IAfostoProductBuilder afostoProductBuilder = new AfostoProductBuilder(
+                    await Requirements(), await GetTaxClass(), _steigerhoutCustomOptionsBuilder,
+                    _config, wcProduct, _wcObject, imageResult, _usedIds);
+
+                //Build the actual model we post to afosto
+                var mappingData = await _wtaMapping.BuildAfostoMigrationModel(afostoProductBuilder);
+
+                //Post the model we build to Afosto as Json
+                await MigrationMiddelware.BuildWTAMappingModel(
+                    AfostoDataProcessor.GetLastAccessToken()[0],
+                    mappingData, _config, _logger, wcProduct.id);
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message + ex.StackTrace);
+            }
+        }*/
 
         /// <summary>
         /// Do we have custom options selected? if so we create instance here and return true;
