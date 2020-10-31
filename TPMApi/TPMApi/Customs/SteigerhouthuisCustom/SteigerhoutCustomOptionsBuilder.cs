@@ -118,7 +118,7 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
                     var option = new Options()
                     {
                         Key = kvp.Key,
-                        Value = kvp.Value.Split(",")[0]
+                        Value = kvp.Value.Split("€")[0]
                     };
 
                     options.Add(option);
