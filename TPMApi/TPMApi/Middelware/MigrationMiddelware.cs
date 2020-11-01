@@ -55,7 +55,7 @@ namespace TPMApi.Middelware
             string accessToken,
             JObject data)
         {
-            var apiClient = new AfostoHttpClient(accessToken);
+            var apiClient = new AfostoHttpClient(accessToken, 1);
             var requestUriString = string.Format("{0}{1}", config.Value.ApiServerUrl, path);
             var content = new StringContent(JsonConvert.SerializeObject(data));
 
@@ -90,9 +90,10 @@ namespace TPMApi.Middelware
         public static async Task<string> GetAfostoData(
             string accessToken,
             IOptions<AuthorizationPoco> config,
-            string path)
+            string path,
+            int page)
         {
-            var apiClient = new AfostoHttpClient(accessToken);
+            var apiClient = new AfostoHttpClient(accessToken, page);
             var requestUriString = string.Format("{0}{1}", config.Value.ApiServerUrl, path);
 
             var result = await apiClient.AfostoClient.GetAsync(requestUriString);
@@ -112,7 +113,7 @@ namespace TPMApi.Middelware
             List<ProductImage> imageObjectList,
             Dictionary<string, string> parms = null)
         {
-            var apiClient = new AfostoHttpClient(accessToken);
+            var apiClient = new AfostoHttpClient(accessToken, 1);
             var url = "https://upload.afosto.com/v2/product";
 
             List<AfostoImageModelAfterUpload> imageList = new List<AfostoImageModelAfterUpload>();

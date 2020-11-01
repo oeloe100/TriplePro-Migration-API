@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -11,11 +12,13 @@ using System.Threading.Tasks;
 using TPMApi.Builder.Afosto;
 using TPMApi.Builder.Afosto.WTAMapping;
 using TPMApi.Customs.SteigerhouthuisCustom;
+using TPMApi.Helpers;
 using TPMApi.Middelware;
 using TPMApi.Models;
 using TPMApi.Services;
 using TPMDataLibrary.BusinessLogic;
 using WooCommerceNET;
+using WooCommerceNET.Base;
 using WooCommerceNET.WooCommerce.v3;
 
 namespace TPMApi.Controllers
@@ -102,6 +105,8 @@ namespace TPMApi.Controllers
                     i++;
                 }
 
+                await CheckForFailedMigrations();
+
                 return OnMigrationCompleted();
             }
             catch (Exception ex)
@@ -152,6 +157,33 @@ namespace TPMApi.Controllers
                 _logger.LogError(ex.Message + ex.StackTrace);
             }
         }*/
+
+        private async Task CheckForFailedMigrations()
+        {
+            try
+            {
+                var productCount = await _wcObjectLegacy.GetProductCount();
+                var pageCount = (int)Math.Ceiling((double)productCount / 50);
+
+                for (var i = 1; i <= pageCount;)
+                {
+                    var products = await GetWCProducts(i, _pageSize);
+
+                    foreach (var prod in products)
+                    {
+                        var isSynced = DebugFailedMigrations.ByTitle(await LoadAfostoData("/products", i), prod.name);
+                        if (isSynced)
+                            _logger.LogError("Failed Migration On Product: " + prod.name);
+                    }
+
+                    i++;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message + ex.StackTrace);
+            }
+        }
 
         /// <summary>
         /// Do we have custom options selected? if so we create instance here and return true;
@@ -259,7 +291,7 @@ namespace TPMApi.Controllers
         /// <returns></returns>
         public async Task<JToken> GetTaxClass()
         {
-            var taxClass = await LoadAfostoData("/taxclasses");
+            var taxClass = await LoadAfostoData("/taxclasses", 1);
             return taxClass[0];
         }
 
@@ -270,7 +302,7 @@ namespace TPMApi.Controllers
         /// <returns></returns>
         internal async Task<JArray> GetDataByPath(string path)
         {
-            var data = await LoadAfostoData(path);
+            var data = await LoadAfostoData(path, 1);
             return data;
         }
 
@@ -279,11 +311,11 @@ namespace TPMApi.Controllers
         /// </summary>
         /// <param name="location"></param>
         /// <returns></returns>
-        private async Task<JArray> LoadAfostoData(string location)
+        private async Task<JArray> LoadAfostoData(string location, int page)
         {
             var reqAfostoData = await MigrationMiddelware.GetAfostoData(
                 AfostoDataProcessor.GetLastAccessToken()[0],
-                _config, location);
+                _config, location, page);
 
             JArray jArrayMetaData = JArray.Parse(reqAfostoData);
 

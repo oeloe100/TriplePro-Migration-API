@@ -64,7 +64,7 @@ namespace TPMApi.Middelware
             string code)
         {
             //instantiate with empty string. No Accesstoken to insert.
-            var afostoHttpClient = new AfostoHttpClient(null);
+            var afostoHttpClient = new AfostoHttpClient(null, 1);
 
             string requestUriString = string.Format("{0}/oauth/token", serverUrl);
 

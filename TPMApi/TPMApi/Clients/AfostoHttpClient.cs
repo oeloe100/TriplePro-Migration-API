@@ -11,11 +11,12 @@ namespace TPMApi.Clients
     public class AfostoHttpClient
     {
         public HttpClient AfostoClient;
-        private readonly string _AccessToken;
+        private readonly string _accessToken;
+        private readonly int _page;
 
-        public AfostoHttpClient(string accessToken)
+        public AfostoHttpClient(string accessToken, int page)
         {
-            _AccessToken = accessToken;
+            _accessToken = accessToken;
             Init();
         }
 
@@ -30,11 +31,11 @@ namespace TPMApi.Clients
             AfostoClient.BaseAddress = new Uri(api);
             AfostoClient.DefaultRequestHeaders.Accept.Clear();
             
-            if (!string.IsNullOrEmpty(_AccessToken))
+            if (!string.IsNullOrEmpty(_accessToken))
             {
-                AfostoClient.DefaultRequestHeaders.Add("page", "1");
+                AfostoClient.DefaultRequestHeaders.Add("page", _page.ToString());
                 AfostoClient.DefaultRequestHeaders.Add("pagesize", "50");
-                AfostoClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _AccessToken);
+                AfostoClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
             }
 
             AfostoClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
