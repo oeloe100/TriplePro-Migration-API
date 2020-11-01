@@ -172,7 +172,7 @@ namespace TPMApi.Controllers
                     foreach (var prod in products)
                     {
                         var isSynced = DebugFailedMigrations.ByTitle(await LoadAfostoData("/products", i), prod.name);
-                        if (isSynced)
+                        if (!isSynced)
                             _logger.LogError("Failed Migration On Product: " + prod.name);
                     }
 

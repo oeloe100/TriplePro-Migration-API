@@ -12,11 +12,13 @@ namespace TPMApi.Clients
     {
         public HttpClient AfostoClient;
         private readonly string _accessToken;
-        private readonly int _page;
+        private int _page;
 
         public AfostoHttpClient(string accessToken, int page)
         {
             _accessToken = accessToken;
+            _page = page;
+
             Init();
         }
 
