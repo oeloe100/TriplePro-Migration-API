@@ -1,4 +1,0 @@
-1. In Console PackageManager Type:
-Add-Migration InitialCreate -Context YourContext
-2. In Console PackageManager Type;
-Update-Database -Context YourContext
