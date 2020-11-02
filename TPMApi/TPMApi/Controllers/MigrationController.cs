@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -67,19 +68,17 @@ namespace TPMApi.Controllers
         /// <returns></returns>
         public async Task<ContentResult> StartWTAMigration(List<string> specialsArray)
         {
+            //await FailedMigrations();
+
             try
             {
-                //Get WooCommerce Shop product count trough Legacy WCObject
-                var productCount = await _wcObjectLegacy.GetProductCount();
-                //Calculate the amount of pages available
+                var productCount = await CorrectV3ProdCount();
                 var pageCount = (int)Math.Ceiling((double)productCount / _pageSize);
-
-                //await Test(specialsArray);
 
                 for (var i = 1; i <= pageCount;)
                 {
                     foreach (var wcProduct in await GetWCProducts(i, _pageSize))
-                    { 
+                    {
                         //First we check if we have included a customOption if so we create an instance.
                         await IncludeCustomOptions(specialsArray, wcProduct);
 
@@ -90,7 +89,7 @@ namespace TPMApi.Controllers
 
                         //We build the afosto product model;
                         IAfostoProductBuilder afostoProductBuilder = new AfostoProductBuilder(
-                            await Requirements(), await GetTaxClass(), _steigerhoutCustomOptionsBuilder, 
+                            await Requirements(), await GetTaxClass(), _steigerhoutCustomOptionsBuilder,
                             _config, wcProduct, _wcObject, imageResult, _usedIds);
 
                         //Build the actual model we post to afosto
@@ -105,7 +104,7 @@ namespace TPMApi.Controllers
                     i++;
                 }
 
-                await CheckForFailedMigrations();
+                await FailedMigrations();
 
                 return OnMigrationCompleted();
             }
@@ -116,73 +115,85 @@ namespace TPMApi.Controllers
             }
         }
 
-        /*async Task Test(List<string> specialsArray)
+        /// <summary>
+        /// Check if afosto prod. titles list contains products (published and concept).
+        /// If list does not contain title. We log this as a failed migration. Prod. is probably too large or incomplete.
+        /// </summary>
+        /// <returns></returns>
+        private async Task FailedMigrations()
+        {
+            var productCount = await CorrectV3ProdCount();
+            var pageCount = (int)Math.Ceiling((double)productCount / _pageSize);
+
+            var afostoProdTitlesList = await AfostoProductsTitle();
+
+            for (var i = 1; i <= pageCount;)
+            {
+                var wooProducts = await GetWCProducts(i, _pageSize);
+                for (var x = 0; x < wooProducts.Count; x++)
+                {
+                    if (afostoProdTitlesList.Contains(wooProducts[x].name) == false)
+                        _logger.LogError(wooProducts[x].name);
+                }
+
+                i++;
+            }
+        }
+
+        /// <summary>
+        /// Get every single product in afosto after migration.
+        /// Collect product titles and conv. to list. > Returns a list of product titles
+        /// </summary>
+        /// <returns></returns>
+        private async Task<List<string>> AfostoProductsTitle()
         {
             try
             {
-                //Get WooCommerce Shop product count trough Legacy WCObject
-                var productCount = await _wcObjectLegacy.GetProductCount();
-                //Calculate the amount of pages available
-                var pageCount = (int)Math.Ceiling((double)productCount / _pageSize);
+                List<string> afostoProductTitles = new List<string>();
 
-                //var wcProduct = _wcObjectLegacy.GetProduct(9728).Result;
-                var wcProduct = _wcObject.Product.Get(9728).Result;
-
-                Console.WriteLine();
-                
-                //First we check if we have included a customOption if so we create an instance.
-                await IncludeCustomOptions(specialsArray, wcProduct);
-
-                //We first upload the images to afosto. Then we use the given ID to connect product to image.
-                var imageResult = await MigrationMiddelware.UploadImageToAfosto(
-                        AfostoDataProcessor.GetLastAccessToken()[0],
-                        _logger, wcProduct.images);
-
-                //We build the afosto product model;
-                IAfostoProductBuilder afostoProductBuilder = new AfostoProductBuilder(
-                    await Requirements(), await GetTaxClass(), _steigerhoutCustomOptionsBuilder,
-                    _config, wcProduct, _wcObject, imageResult, _usedIds);
-
-                //Build the actual model we post to afosto
-                var mappingData = await _wtaMapping.BuildAfostoMigrationModel(afostoProductBuilder);
-
-                //Post the model we build to Afosto as Json
-                await MigrationMiddelware.BuildWTAMappingModel(
-                    AfostoDataProcessor.GetLastAccessToken()[0],
-                    mappingData, _config, _logger, wcProduct.id);
-
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex.Message + ex.StackTrace);
-            }
-        }*/
-
-        private async Task CheckForFailedMigrations()
-        {
-            try
-            {
-                var productCount = await _wcObjectLegacy.GetProductCount();
+                var productCount = await LoadAfostoProdCount("/products/count", 1);
                 var pageCount = (int)Math.Ceiling((double)productCount / 50);
 
                 for (var i = 1; i <= pageCount;)
                 {
-                    var products = await GetWCProducts(i, _pageSize);
-
-                    foreach (var prod in products)
+                    var afostoProd = LoadAfostoData("/products", i).Result;
+                    for (var x = 0; x < afostoProd.Count; x++)
                     {
-                        var isSynced = DebugFailedMigrations.ByTitle(await LoadAfostoData("/products", i), prod.name);
-                        if (!isSynced)
-                            _logger.LogError("Failed Migration On Product: " + prod.name);
+                        var descriptors = AfostoProductBuildingHelpers.GetValue<JToken>(afostoProd[x], "descriptors");
+                        var name = descriptors[0].GetValue<JToken>("name").ToString();
+                        afostoProductTitles.Add(name);
                     }
 
                     i++;
                 }
+
+                return afostoProductTitles;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex.Message + ex.StackTrace);
+                return null;
             }
+        }
+
+        /// <summary>
+        /// Get Correct product count for Woo V3. Since the count is legacy and published products based.
+        /// </summary>
+        /// <returns></returns>
+        private async Task<int> CorrectV3ProdCount()
+        {
+            int prodCount = 0;
+            var productCount = await _wcObjectLegacy.GetProductCount();
+            var pageCount = (int)Math.Ceiling((double)productCount / _pageSize);
+
+            for (var i = 1; i <= pageCount;)
+            {
+                var x = GetWCProducts(i, _pageSize).Result.Count;
+                prodCount += x;
+                i++;
+            }
+
+            return prodCount;
         }
 
         /// <summary>
@@ -194,11 +205,13 @@ namespace TPMApi.Controllers
         private async Task IncludeCustomOptions(List<string> includedOptions, Product product)
         {
             foreach (var option in includedOptions)
-            { 
-                if (option.ToLower().Contains("steigerhout"))
+            {
+                switch (option.ToLower())
                 {
-                    _steigerhoutCustomOptionsBuilder = new SteigerhoutCustomOptionsBuilder(
+                    case "steigerhout":
+                        _steigerhoutCustomOptionsBuilder = new SteigerhoutCustomOptionsBuilder(
                         product, await Requirements(), await GetTaxClass(), _usedIds);
+                            break;
                 }
             }
         }
@@ -320,6 +333,24 @@ namespace TPMApi.Controllers
             JArray jArrayMetaData = JArray.Parse(reqAfostoData);
 
             return jArrayMetaData;
+        }
+
+        /// <summary>
+        /// Load afosto product count and convert to int.
+        /// </summary>
+        /// <param name="location"></param>
+        /// <param name="page"></param>
+        /// <returns></returns>
+        private async Task<int> LoadAfostoProdCount(string location, int page)
+        {
+            var reqAfostoData = await MigrationMiddelware.GetAfostoData(
+                AfostoDataProcessor.GetLastAccessToken()[0],
+                _config, location, page);
+
+            var convToJObject = JObject.Parse(reqAfostoData)["total"].ToString();
+            int count = Int32.Parse(convToJObject);
+
+            return count;
         }
     }
 }

@@ -30,9 +30,15 @@ $(".modal-close").on("click", function () {
 });
 
 $(".modal-save").on("click", function () {
-    var selections = $(".special-form").find("#inlineFormCustomSelect");
+    var customs = $(".customs-form").find("#customsSelect");
+    var categoriesOption = $(".cat-form").find("#migrateCategories");
 
-    $(selections).each(function (index, value) {
+    $(customs).each(function (index, value) {
+        var value = $(value).val();
+        specialReqArray.push(value);
+    });
+
+    $(categoriesOption).each(function (index, value) {
         var value = $(value).val();
         specialReqArray.push(value);
     });
