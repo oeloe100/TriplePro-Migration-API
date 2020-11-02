@@ -1,12 +1,7 @@
 ﻿using Dapper;
-using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TPMApi.Models;
 using TPMDataLibrary.DataAccess;
 using TPMDataLibrary.Models;
 
@@ -19,23 +14,23 @@ namespace TPMDataLibrary.BusinessLogic
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static int InsertAccessData(AfostoAccessModel model)
+        public static int InsertAccessData(AfostoAccessModel model, string sqlConn)
         {
             var sql = @"INSERT INTO dbo.AfostoAccess (AccessToken, RefreshToken, ExpiresIn, Created_At, UserId, Name, AfostoKey, AfostoSecret) VALUES 
                     (@AccessToken, @RefreshToken, @ExpiresIn, @Created_At, @UserId, @Name, @AfostoKey, @AfostoSecret);";
 
-            return SQLDataAccess.SaveData(sql, model);
+            return SQLDataAccess.SaveData(sql, model, sqlConn);
         }
 
         /// <summary>
         /// Get last record in AfostoAccess Table
         /// </summary>
         /// <returns></returns>
-        public static List<string> GetLastAccessToken()
+        public static List<string> GetLastAccessToken(string sqlConn)
         {
             string sql = @"SELECT TOP 1 AccessToken FROM dbo.AfostoAccess;";
 
-            return SQLDataAccess.LoadData<string>(sql);
+            return SQLDataAccess.LoadData<string>(sql, sqlConn);
         }
 
         /// <summary>
@@ -43,11 +38,11 @@ namespace TPMDataLibrary.BusinessLogic
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static bool CompareAfostoSecretWithExistingRecords(string afostoSecret)
+        public static bool CompareAfostoSecretWithExistingRecords(string afostoSecret, string sqlConn)
         {
             var sql = @"SELECT * FROM dbo.AfostoAccess WHERE AfostoSecret=@afostoSecret";
 
-            using (IDbConnection cnn = new SqlConnection(SQLDataAccess._conn))
+            using (IDbConnection cnn = new SqlConnection(sqlConn))
             {
                 return cnn.ExecuteScalar<bool>(sql, new { afostoSecret });
             }
@@ -58,11 +53,11 @@ namespace TPMDataLibrary.BusinessLogic
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static int EditCallbackAccessData(AfostoAccessModel model)
+        public static int EditCallbackAccessData(AfostoAccessModel model, string sqlConn)
         {
             var sql = @"Update dbo.AfostoAccess SET AccessToken=@AccessToken, RefreshToken=@RefreshToken, ExpiresIn=@ExpiresIn";
 
-            return SQLDataAccess.SaveData(sql, model);
+            return SQLDataAccess.SaveData(sql, model, sqlConn);
         }
     }
 }

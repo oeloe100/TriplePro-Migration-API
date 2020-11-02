@@ -2,10 +2,13 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
 using System;
+using System.IO;
 using System.Threading.Tasks;
 using TPMApi.Middelware;
 using TPMApi.Models;
@@ -21,6 +24,8 @@ namespace TPMApi.Controllers
         private static UserManager<IdentityUser> _userManager;
         private readonly ILogger<AfostoAuthenticationController> _logger;
 
+        private SqlConnection _sqlConn;
+
         public AfostoAuthenticationController(
             IOptions<AuthorizationPoco> config,
             UserManager<IdentityUser> userManager,
@@ -29,6 +34,13 @@ namespace TPMApi.Controllers
             _config = config;
             _userManager = userManager;
             _logger = logger;
+
+            var builder = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json").Build();
+            SqlConnection sqlConn = new SqlConnection(builder.
+                        GetSection("ConnectionStrings").
+                        GetSection("TPMApiContextConnection").Value);
+
+            _sqlConn = sqlConn;
         }
 
         /// <summary>
@@ -37,7 +49,7 @@ namespace TPMApi.Controllers
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public async Task<IActionResult> Authenticate([FromForm]AfostoAccessPoco model)
+        public async Task<IActionResult> Authenticate([FromForm] AfostoAccessPoco model)
         {
             if (ModelState.IsValid)
             {
@@ -59,7 +71,7 @@ namespace TPMApi.Controllers
 
                     //check if we already have existing records with this clientSecret and or name
                     var containsRecords = AfostoDataProcessor.CompareAfostoSecretWithExistingRecords(
-                        model.AfostoClientSecret);
+                        model.AfostoClientSecret, _sqlConn.ConnectionString);
 
                     if (!containsRecords)
                     {
@@ -74,7 +86,7 @@ namespace TPMApi.Controllers
                         };
 
                         //Insert datamodel into database
-                        AfostoDataProcessor.InsertAccessData(afostoAccessModel);
+                        AfostoDataProcessor.InsertAccessData(afostoAccessModel, _sqlConn.ConnectionString);
 
                         return Ok(authLocation);
                     }
@@ -127,7 +139,7 @@ namespace TPMApi.Controllers
                         AccessToken = tPoco.AccessToken,
                         RefreshToken = tPoco.RefreshToken,
                         ExpiresIn = tPoco.ExpiresIn,
-                    });
+                    }, _sqlConn.ConnectionString);
 
                     return Redirect("~/");
                 }

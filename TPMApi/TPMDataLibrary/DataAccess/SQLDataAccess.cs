@@ -1,18 +1,13 @@
 ﻿using Dapper;
-using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
-using System.Text;
 
 namespace TPMDataLibrary.DataAccess
 {
     class SQLDataAccess
     {
-        //remove hardcoded part. get it from appsettings.json TODO
-        public static string _conn = "Server=(localdb)\\mssqllocaldb;Database=TPMApi;Trusted_Connection=True;MultipleActiveResultSets=true";
-
         /// <summary>
         /// Save data to database using DAPPER
         /// </summary>
@@ -21,9 +16,9 @@ namespace TPMDataLibrary.DataAccess
         /// <param name="sql"></param>
         /// <param name="data"></param>
         /// <returns></returns>
-        public static int SaveData<T>(string sql, T data)
+        public static int SaveData<T>(string sql, T data, string sqlConn)
         {
-            using (IDbConnection cnn = new SqlConnection(_conn))
+            using (IDbConnection cnn = new SqlConnection(sqlConn))
             {
                 return cnn.Execute(sql, data);
             }
@@ -36,9 +31,9 @@ namespace TPMDataLibrary.DataAccess
         /// <param name="connectionString"></param>
         /// <param name="sql"></param>
         /// <returns></returns>
-        public static List<T> LoadData<T>(string sql)
+        public static List<T> LoadData<T>(string sql, string sqlConn)
         {
-            using (IDbConnection cnn = new SqlConnection(_conn))
+            using (IDbConnection cnn = new SqlConnection(sqlConn))
             {
                 return cnn.Query<T>(sql).ToList();
             }
@@ -50,9 +45,9 @@ namespace TPMDataLibrary.DataAccess
         /// <param name="sql"></param>
         /// <param name="data"></param>
         /// <returns></returns>
-        public static bool CompareData(string sql, string data)
+        public static bool CompareData(string sql, string data, string sqlConn)
         {
-            using (IDbConnection cnn = new SqlConnection(_conn))
+            using (IDbConnection cnn = new SqlConnection(sqlConn))
             {
                 return cnn.ExecuteScalar<bool>(sql, new { data });
             }

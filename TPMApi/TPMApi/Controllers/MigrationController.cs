@@ -1,13 +1,14 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
+using System.IO;
 using System.Net;
 using System.Threading.Tasks;
 using TPMApi.Builder.Afosto;
@@ -19,7 +20,6 @@ using TPMApi.Models;
 using TPMApi.Services;
 using TPMDataLibrary.BusinessLogic;
 using WooCommerceNET;
-using WooCommerceNET.Base;
 using WooCommerceNET.WooCommerce.v3;
 
 namespace TPMApi.Controllers
@@ -41,6 +41,8 @@ namespace TPMApi.Controllers
         private static readonly int _pageSize = 100;
         private static List<long> _usedIds;
 
+        private static SqlConnection _sqlConn;
+
         public MigrationController(
             IOptions<AuthorizationPoco> config,
             ILogger<MigrationController> logger,
@@ -52,8 +54,16 @@ namespace TPMApi.Controllers
             _wtaMapping = new AfostoMigrationModelBuilder(config, logger);
             _usedIds = new List<long>();
 
+            //Config string
+            var builder = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json").Build();
+            SqlConnection sqlConn = new SqlConnection(builder.
+                        GetSection("ConnectionStrings").
+                        GetSection("TPMApiContextConnection").Value);
+
+            _sqlConn = sqlConn;
+
             //Get for ex. Accesstoken etc. from Db.
-            _wooAccessModel = WooDataProcessor.GetLastAccessData()[0];
+            _wooAccessModel = WooDataProcessor.GetLastAccessData(sqlConn.ConnectionString)[0];
             CreateWCObjectInstance(_wooAccessModel);
         }
 
@@ -84,7 +94,7 @@ namespace TPMApi.Controllers
 
                         //We first upload the images to afosto. Then we use the given ID to connect product to image.
                         var imageResult = await MigrationMiddelware.UploadImageToAfosto(
-                                AfostoDataProcessor.GetLastAccessToken()[0],
+                                AfostoDataProcessor.GetLastAccessToken(_sqlConn.ConnectionString)[0],
                                 _logger, wcProduct.images);
 
                         //We build the afosto product model;
@@ -97,7 +107,7 @@ namespace TPMApi.Controllers
 
                         //Post the model we build to Afosto as Json
                         await MigrationMiddelware.BuildWTAMappingModel(
-                            AfostoDataProcessor.GetLastAccessToken()[0],
+                            AfostoDataProcessor.GetLastAccessToken(_sqlConn.ConnectionString)[0],
                             mappingData, _config, _logger, wcProduct.id);
                     }
 
@@ -133,7 +143,9 @@ namespace TPMApi.Controllers
                 for (var x = 0; x < wooProducts.Count; x++)
                 {
                     if (afostoProdTitlesList.Contains(wooProducts[x].name) == false)
+                    {
                         _logger.LogError(wooProducts[x].name);
+                    }
                 }
 
                 i++;
@@ -211,7 +223,7 @@ namespace TPMApi.Controllers
                     case "steigerhout":
                         _steigerhoutCustomOptionsBuilder = new SteigerhoutCustomOptionsBuilder(
                         product, await Requirements(), await GetTaxClass(), _usedIds);
-                            break;
+                        break;
                 }
             }
         }
@@ -327,7 +339,7 @@ namespace TPMApi.Controllers
         private async Task<JArray> LoadAfostoData(string location, int page)
         {
             var reqAfostoData = await MigrationMiddelware.GetAfostoData(
-                AfostoDataProcessor.GetLastAccessToken()[0],
+                AfostoDataProcessor.GetLastAccessToken(_sqlConn.ConnectionString)[0],
                 _config, location, page);
 
             JArray jArrayMetaData = JArray.Parse(reqAfostoData);
@@ -344,7 +356,7 @@ namespace TPMApi.Controllers
         private async Task<int> LoadAfostoProdCount(string location, int page)
         {
             var reqAfostoData = await MigrationMiddelware.GetAfostoData(
-                AfostoDataProcessor.GetLastAccessToken()[0],
+                AfostoDataProcessor.GetLastAccessToken(_sqlConn.ConnectionString)[0],
                 _config, location, page);
 
             var convToJObject = JObject.Parse(reqAfostoData)["total"].ToString();

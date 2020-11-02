@@ -17,12 +17,12 @@ namespace TPMDataLibrary.BusinessLogic
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static int InsertAccessData(WooAccessModel model)
+        public static int InsertAccessData(WooAccessModel model, string sqlConn)
         {
             var sql = @"INSERT INTO dbo.WooAccess (UserId, Name, WooClientKey, WooClientSecret, Created_At) VALUES 
                     (@UserId, @Name, @WooClientKey, @WooClientSecret, @Created_At);";
 
-            return SQLDataAccess.SaveData(sql, model);
+            return SQLDataAccess.SaveData(sql, model, sqlConn);
         }
 
         /// <summary>
@@ -30,11 +30,11 @@ namespace TPMDataLibrary.BusinessLogic
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static bool CompareWooSecretWithExistingRecords(string wooClientSecret)
+        public static bool CompareWooSecretWithExistingRecords(string wooClientSecret, string sqlConn)
         {
             var sql = @"SELECT * FROM dbo.WooAccess WHERE WooClientSecret=@wooClientSecret";
 
-            using (IDbConnection cnn = new SqlConnection(SQLDataAccess._conn))
+            using (IDbConnection cnn = new SqlConnection(sqlConn))
             {
                 return cnn.ExecuteScalar<bool>(sql, new { wooClientSecret });
             }
@@ -44,11 +44,11 @@ namespace TPMDataLibrary.BusinessLogic
         /// Get last record in WooAccess Table
         /// </summary>
         /// <returns></returns>
-        public static List<WooAccessModel> GetLastAccessData()
+        public static List<WooAccessModel> GetLastAccessData(string sqlConn)
         {
             string sql = @"SELECT TOP 1 UserId, Name, WooClientKey, WooClientSecret, Created_At FROM dbo.WooAccess;";
 
-            return SQLDataAccess.LoadData<WooAccessModel>(sql);
+            return SQLDataAccess.LoadData<WooAccessModel>(sql, sqlConn);
         }
     }
 }

@@ -1,8 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Data.SqlClient;
+using System.IO;
 using System.Threading.Tasks;
 using TPMApi.Models;
 using TPMDataLibrary.BusinessLogic;
@@ -15,12 +18,21 @@ namespace TPMApi.Controllers
         private static UserManager<IdentityUser> _userManager;
         private readonly ILogger<WooCommerceAuthenticationController> _logger;
 
+        private SqlConnection _sqlConn;
+
         public WooCommerceAuthenticationController(
             UserManager<IdentityUser> userManager,
             ILogger<WooCommerceAuthenticationController> logger)
         {
             _userManager = userManager;
             _logger = logger;
+
+            var builder = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json").Build();
+            SqlConnection sqlConn = new SqlConnection(builder.
+                        GetSection("ConnectionStrings").
+                        GetSection("TPMApiContextConnection").Value);
+
+            _sqlConn = sqlConn;
         }
 
         public IActionResult Index()
@@ -35,7 +47,7 @@ namespace TPMApi.Controllers
             try
             {
                 var containsRecords = WooDataProcessor.CompareWooSecretWithExistingRecords(
-                        model.WooClientSecret);
+                        model.WooClientSecret, _sqlConn.ConnectionString);
 
                 if (!containsRecords)
                 {
@@ -50,7 +62,7 @@ namespace TPMApi.Controllers
                     };
 
                     //Insert datamodel into database
-                    WooDataProcessor.InsertAccessData(wooAccessModel);
+                    WooDataProcessor.InsertAccessData(wooAccessModel, _sqlConn.ConnectionString);
                 }
 
                 return Ok($"{ this.Request.Scheme }://{ this.Request.Host }/Migration/Index");
