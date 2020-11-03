@@ -1,10 +1,9 @@
 ﻿using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.Extensions.Options;
-using System;
-using System.Threading.Tasks;
-using TPMApi.Models;
 using SendGrid;
 using SendGrid.Helpers.Mail;
+using System.Threading.Tasks;
+using TPMApi.Models;
 
 namespace TPMApi.Services
 {

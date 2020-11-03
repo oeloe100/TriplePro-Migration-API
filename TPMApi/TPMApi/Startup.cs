@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using System;
 using TPMApi.Data;
 using TPMApi.Models;
@@ -63,7 +64,7 @@ namespace TPMApi
                 options.SignIn.RequireConfirmedEmail = false;
             });
 
-            services.AddCors(options =>
+            /*services.AddCors(options =>
             {
                 options.AddPolicy(name: "DefaultPolicy",
                     builder =>
@@ -73,7 +74,7 @@ namespace TPMApi
                                 .AllowAnyMethod()
                                 .AllowAnyOrigin();
                     });
-            });
+            });*/
 
             //For token based authentiation. Jwt authentication.
             //services.AddTokenAuthentication(Configuration);
@@ -86,7 +87,7 @@ namespace TPMApi
             services.AddHttpContextAccessor();
         }
 
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, UserManager<IdentityUser> userManager)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
             if (env.IsDevelopment())
             {
@@ -94,7 +95,7 @@ namespace TPMApi
                 app.UseDatabaseErrorPage();
             }
 
-            if (env.IsProduction() || env.IsStaging() || env.IsEnvironment("Staging_2"))
+            if (env.IsProduction() || env.IsStaging())
             {
                 app.UseExceptionHandler("/Error");
                 app.UseHsts();
@@ -107,7 +108,7 @@ namespace TPMApi
             app.UseCookiePolicy();
 
             app.UseRouting();
-            app.UseCors(policyName: "DefaultPolicy");
+            //app.UseCors(policyName: "DefaultPolicy");
 
             app.UseAuthentication();
             app.UseAuthorization();

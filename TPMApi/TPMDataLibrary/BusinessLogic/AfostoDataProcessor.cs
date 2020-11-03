@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
@@ -46,6 +47,13 @@ namespace TPMDataLibrary.BusinessLogic
             {
                 return cnn.ExecuteScalar<bool>(sql, new { afostoSecret });
             }
+        }
+
+        public static List<AfostoAccessModel> GetAccessData(string sqlConn)
+        {
+            string sql = @"SELECT * FROM dbo.AfostoAccess;";
+
+            return SQLDataAccess.LoadData<AfostoAccessModel>(sql, sqlConn);
         }
 
         /// <summary>

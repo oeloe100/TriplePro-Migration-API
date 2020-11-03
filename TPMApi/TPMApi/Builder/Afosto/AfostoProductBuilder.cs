@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading.Tasks;
 using TPMApi.Builder.Afosto.Requirements;
 using TPMApi.Customs.SteigerhouthuisCustom;
@@ -84,11 +85,17 @@ namespace TPMApi.Builder.Afosto
         /// <returns></returns>
         public Seo SetSeo()
         {
+            var stringBuilder = new StringBuilder();
+            foreach (var tag in Product.tags)
+            {
+                stringBuilder.Append(tag.name + " ");
+            }
+
             var seo = new Seo()
             {
                 Title = Product.slug,
                 Description = Product.description,
-                Keywords = Product.name,
+                Keywords = stringBuilder.ToString(),
                 robots = ""
             };
 

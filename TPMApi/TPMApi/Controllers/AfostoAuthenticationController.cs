@@ -63,36 +63,29 @@ namespace TPMApi.Controllers
                     //build Authorization Uri
                     var authLocation = AfostoAuthorizationMiddelware.RequestAuthorizationUrl(
                         _config.Value.AppServerUrl,
-                        _config.Value.ConsumerKey,
+                        model.AfostoClientId,
                         _config.Value.CallbackUrl,
                         state.ToString());
 
                     var user = await _userManager.GetUserAsync(User);
 
-                    //check if we already have existing records with this clientSecret and or name
-                    var containsRecords = AfostoDataProcessor.CompareAfostoSecretWithExistingRecords(
-                        model.AfostoClientSecret, _sqlConn.ConnectionString);
-
-                    if (!containsRecords)
+                    //insert first afosto access data into db.
+                    AfostoAccessModel afostoAccessModel = new AfostoAccessModel()
                     {
-                        //insert first afosto access data into db.
-                        AfostoAccessModel afostoAccessModel = new AfostoAccessModel()
-                        {
-                            UserId = user.Id,
-                            AfostoKey = model.AfostoClientId,
-                            AfostoSecret = model.AfostoClientSecret,
-                            Created_At = DateTime.UtcNow,
-                            Name = model.Name,
-                        };
+                        UserId = user.Id,
+                        AfostoKey = model.AfostoClientId,
+                        AfostoSecret = model.AfostoClientSecret,
+                        Created_At = DateTime.UtcNow,
+                        Name = model.Name,
+                    };
 
-                        //Insert datamodel into database
-                        AfostoDataProcessor.InsertAccessData(afostoAccessModel, _sqlConn.ConnectionString);
+                    //Insert datamodel into database
+                    AfostoDataProcessor.InsertAccessData(afostoAccessModel, _sqlConn.ConnectionString);
 
-                        return Ok(authLocation);
-                    }
+                    return Ok(authLocation);
 
                     //We return the URL for WooCommerce Authentication
-                    return Ok($"{ this.Request.Scheme }://{ this.Request.Host }/WooCommerceAuthentication/Index");
+                    //return Ok($"{ this.Request.Scheme }://{ this.Request.Host }/WooCommerceAuthentication/Index");
 
                 }
                 catch (Exception ex)
@@ -120,11 +113,14 @@ namespace TPMApi.Controllers
             {
                 try
                 {
+                    //Load afosto access model from SQL DB
+                    var AfostoAccessModel = AfostoDataProcessor.GetAccessData(_sqlConn.ConnectionString);
+
                     //Send appropriate data to afosto token endpoint and receive access data
                     var response = await AfostoAuthorizationMiddelware.AuthorizeClient(
                         _config.Value.AppServerUrl,
-                        _config.Value.ConsumerKey,
-                        _config.Value.ConsumerSecret,
+                        AfostoAccessModel[AfostoAccessModel.Count - 1].AfostoKey,
+                        AfostoAccessModel[AfostoAccessModel.Count - 1].AfostoSecret,
                         _config.Value.CallbackUrl,
                         code);
 
@@ -141,7 +137,7 @@ namespace TPMApi.Controllers
                         ExpiresIn = tPoco.ExpiresIn,
                     }, _sqlConn.ConnectionString);
 
-                    return Redirect("~/");
+                    return Redirect($"{ this.Request.Scheme }://{ this.Request.Host }/WooCommerceAuthentication/Index");
                 }
                 catch (Exception ex)
                 {
