@@ -41,8 +41,10 @@ namespace TPMApi
 
             services.AddSession();
 
-            services.AddTransient<IEmailSender, EmailSender>();
-            services.Configure<AuthMessageSenderOptions>(Configuration);
+            services.AddTransient<IEmailService, EmailService>();
+
+            //services.AddTransient<IEmailSender, EmailSender>();
+            //services.Configure<AuthMessageSenderOptions>(Configuration);
 
             services.Configure<AuthorizationPoco>(Configuration.GetSection("Afosto"));
 

@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using TPMApi.Builder.Afosto;
@@ -317,7 +318,7 @@ namespace TPMApi.Controllers
         public async Task<JToken> GetTaxClass()
         {
             var taxClass = await LoadAfostoData("/taxclasses", 1);
-            return taxClass[0];
+            return taxClass[2];
         }
 
         /// <summary>

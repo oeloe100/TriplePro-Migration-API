@@ -88,7 +88,7 @@ namespace TPMApi.Builder.Afosto
             var stringBuilder = new StringBuilder();
             foreach (var tag in Product.tags)
             {
-                stringBuilder.Append(tag.name + " ");
+                stringBuilder.Append(tag.name + ",");
             }
 
             var seo = new Seo()

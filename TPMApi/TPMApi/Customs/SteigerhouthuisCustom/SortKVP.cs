@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using WooCommerceNET.WooCommerce.v3;
 
@@ -42,6 +43,8 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
                         ManageCustomOptionsList(
                             Product.attributes[i].name,
                             option);
+
+                        return;
                     }
                 }
             }
@@ -52,13 +55,18 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
             var coatingChallange = SteigerhoutOptionsData.CoationgOptions().Where(a => a == option);
             if (IsAny(coatingChallange))
             {
-                ManageCustomOptionsList("coating", option);
+                if (_optionsList[_optionsList.Count - 1].ContainsKey("coating") == false)
+                { 
+                    ManageCustomOptionsList("coating", option);
+                    return;
+                }
             }
 
             var washingChallange = SteigerhoutOptionsData.WashingOptions().Where(a => a == option);
             if (IsAny(washingChallange))
             {
                 ManageCustomOptionsList("washing", option);
+                return;
             }
         }
 
