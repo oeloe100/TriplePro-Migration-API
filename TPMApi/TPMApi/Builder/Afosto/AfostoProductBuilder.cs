@@ -131,7 +131,6 @@ namespace TPMApi.Builder.Afosto
                             Inventory = SetInventory(variations[i]),
                             Prices = SetPrices(variations[i]),
                             Options = SetOptions(variations[i]),
-                            Suffix = null,
                         };
 
                         items.Add(item);

@@ -1,7 +1,5 @@
 ﻿using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace TPMHelper.AfostoHelper.ProductModel
 {
@@ -15,11 +13,9 @@ namespace TPMHelper.AfostoHelper.ProductModel
         public decimal? Cost { get; set; }
         [JsonProperty("inventory")]
         public Inventory Inventory { get; set; }
-        [JsonProperty("options")]
-        public List<Options> Options { get; set; }
-        [JsonProperty("suffix")]
-        public string Suffix { get; set; }
         [JsonProperty("prices")]
         public List<Prices> Prices { get; set; }
+        [JsonProperty("options")]
+        public List<Options> Options { get; set; }
     }
 }

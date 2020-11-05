@@ -67,7 +67,7 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
                 }
             }
 
-            CombinationsList.Add(SteigerhoutOptionsData.CoationgOptions());
+            //CombinationsList.Add(SteigerhoutOptionsData.CoationgOptions());
             CombinationsList.Add(SteigerhoutOptionsData.WashingOptions());
         }
 
@@ -88,7 +88,6 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
                     Inventory = SetCustomInventory(0),
                     Options = BuildOptions(option),
                     Prices = SetCustomPrices(price),
-                    Suffix = null
                 };
 
                 //ItemPriceAdjustment(item);
@@ -134,9 +133,11 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
             {
                 Price = Math.Round((price / 121) * 100 ?? 0, 2),
                 PriceGross = price,
+                //OriginalPrice = Math.Round((price / 121) * 100 ?? 0, 2),
+                //OriginalPriceGross = price,
                 IsEnabled = true,
                 TaxClass = TaxClass,
-                Price_Group = AfostoProductRequirements[3]
+                Price_Group = AfostoProductRequirements[1]
             };
 
             List<Prices> prices = new List<Prices>();

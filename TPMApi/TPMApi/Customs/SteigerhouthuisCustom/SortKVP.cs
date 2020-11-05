@@ -52,7 +52,7 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
 
         private void CustomKVPSorted(string option)
         {
-            var coatingChallange = SteigerhoutOptionsData.CoationgOptions().Where(a => a == option);
+            /*var coatingChallange = SteigerhoutOptionsData.CoationgOptions().Where(a => a == option);
             if (IsAny(coatingChallange))
             {
                 if (_optionsList[_optionsList.Count - 1].ContainsKey("coating") == false)
@@ -60,7 +60,7 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
                     ManageCustomOptionsList("coating", option);
                     return;
                 }
-            }
+            }*/
 
             var washingChallange = SteigerhoutOptionsData.WashingOptions().Where(a => a == option);
             if (IsAny(washingChallange))

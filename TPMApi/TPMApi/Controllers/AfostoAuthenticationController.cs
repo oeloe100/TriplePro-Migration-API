@@ -137,7 +137,8 @@ namespace TPMApi.Controllers
                         ExpiresIn = tPoco.ExpiresIn,
                     }, _sqlConn.ConnectionString);
 
-                    return Redirect($"{ this.Request.Scheme }://{ this.Request.Host }/WooCommerceAuthentication/Index");
+                    return RedirectToAction(actionName: "Index", controllerName: "WooCommerceAuthentication");
+                    //$"{ this.Request.Scheme }://{ this.Request.Host }/WooCommerceAuthentication/Index");
                 }
                 catch (Exception ex)
                 {

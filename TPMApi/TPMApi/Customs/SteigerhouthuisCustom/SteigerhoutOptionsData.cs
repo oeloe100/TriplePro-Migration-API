@@ -4,7 +4,7 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
 {
     public class SteigerhoutOptionsData
     {
-        public static List<string> CoationgOptions()
+        /*public static List<string> CoationgOptions()
         {
             List<string> nanoCoatingOptions = new List<string>()
             {
@@ -13,7 +13,7 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
             };
 
             return nanoCoatingOptions;
-        }
+        }*/
 
         public static List<string> WashingOptions()
         {
@@ -21,12 +21,8 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
             {
                 "Geen",
                 "Blackwash",
-                "Greywash",
                 "Whitewash",
                 "Brownwash",
-                "Brown/Whitewash",
-                "Grey/Whitewash",
-                "Black/Whitewash"
             };
 
             return washingOptions;
