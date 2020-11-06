@@ -31,14 +31,8 @@ $(".modal-close").on("click", function () {
 
 $(".modal-save").on("click", function () {
     var customs = $(".customs-form").find("#customsSelect");
-    var categoriesOption = $(".cat-form").find("#migrateCategories");
 
     $(customs).each(function (index, value) {
-        var value = $(value).val();
-        specialReqArray.push(value);
-    });
-
-    $(categoriesOption).each(function (index, value) {
         var value = $(value).val();
         specialReqArray.push(value);
     });

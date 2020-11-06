@@ -133,8 +133,6 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
             {
                 Price = Math.Round((price / 121) * 100 ?? 0, 2),
                 PriceGross = price,
-                //OriginalPrice = Math.Round((price / 121) * 100 ?? 0, 2),
-                //OriginalPriceGross = price,
                 IsEnabled = true,
                 TaxClass = TaxClass,
                 Price_Group = AfostoProductRequirements[1]

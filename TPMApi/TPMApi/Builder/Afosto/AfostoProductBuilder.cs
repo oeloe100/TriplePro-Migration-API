@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Net.Mail;
 using System.Text;
 using System.Threading.Tasks;
 using TPMApi.Builder.Afosto.Requirements;
@@ -30,11 +31,13 @@ namespace TPMApi.Builder.Afosto
         WCObject IAfostoWCRequirements.WCObject => WCObject;
 
         private readonly ISteigerhoutCustomOptionsBuilder _steigerhoutCustomOptionsBuilder;
+        private List<JObject> _wooCategoriesFromAfosto;
         private List<long> _usedIds;
 
         public AfostoProductBuilder(
             List<JArray> afostoProductRequirements,
             JToken taxClass,
+            List<JObject> wooCategoriesFromAfosto,
             ISteigerhoutCustomOptionsBuilder steigerhoutCustomOptionsBuilder,
             IOptions<AuthorizationPoco> config,
             Product product,
@@ -44,6 +47,7 @@ namespace TPMApi.Builder.Afosto
         {
             AfostoProductRequirements = afostoProductRequirements;
             _steigerhoutCustomOptionsBuilder = steigerhoutCustomOptionsBuilder;
+            _wooCategoriesFromAfosto = wooCategoriesFromAfosto;
             TaxClass = taxClass;
             Config = config;
             Product = product;
@@ -204,15 +208,35 @@ namespace TPMApi.Builder.Afosto
 
         /// <summary>
         /// Based on choice eighter Migration Collections from Woo to Afosto. 
-        /// Or use Default afosto collections. (Option not yet implemented)
+        /// Or use Default afosto collections.
         /// </summary>
         /// <param name="collections"></param>
         /// <returns></returns>
-        public JArray SetCollections()
+        public List<Collections> SetCollections()
         {
-            //Currently not used. Enable if we want to Migration collections also
-            //var availableWooCollections = await WooCategories(wcObject);
-            return AfostoProductRequirements[0];
+            List<Collections> collectionsList = new List<Collections>();
+            var prodCategories = Product.categories;
+            
+            for (var i = 0; i < prodCategories.Count; i++)
+            {
+                var wooCatName = prodCategories[i].name;
+                for (var x = 0; x < _wooCategoriesFromAfosto.Count; x++)
+                {
+                    if (_wooCategoriesFromAfosto[x]["name"].ToString() == wooCatName)
+                    {
+                        CollectionsBuilder.OriginalCollectionsBuilder(
+                            _wooCategoriesFromAfosto, 
+                            collectionsList, 
+                            x);
+                    }
+
+                    CollectionsBuilder.DefaultCollectionsBuilder(
+                        AfostoProductRequirements[0],
+                        collectionsList);
+                }
+            }
+
+            return collectionsList;
         }
 
         public List<Images> SetImages()

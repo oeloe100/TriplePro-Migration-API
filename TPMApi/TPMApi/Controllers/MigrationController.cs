@@ -100,8 +100,8 @@ namespace TPMApi.Controllers
 
                         //We build the afosto product model;
                         IAfostoProductBuilder afostoProductBuilder = new AfostoProductBuilder(
-                            await Requirements(), await GetTaxClass(), _steigerhoutCustomOptionsBuilder,
-                            _config, wcProduct, _wcObject, imageResult, _usedIds);
+                            await Requirements(), await GetTaxClass(), await CategoriesToInclude(),
+                            _steigerhoutCustomOptionsBuilder, _config, wcProduct, _wcObject, imageResult, _usedIds);
 
                         //Build the actual model we post to afosto
                         var mappingData = await _wtaMapping.BuildAfostoMigrationModel(afostoProductBuilder);
@@ -153,6 +153,28 @@ namespace TPMApi.Controllers
             }
         }
 
+        private async Task<List<JObject>> CategoriesToInclude()
+        {
+            List<JObject> collectionsListAsJObject = new List<JObject>();
+
+            var collectionsCount = await LoadAfostoCountData("/collections/count", 1);
+            var pageCount = (int)Math.Ceiling((double)collectionsCount / 50);
+
+            for (var x = 1; x <= pageCount;)
+            {
+                var collections = await LoadAfostoData("/collections", x);
+                for (var i = 0; i < collections.Count; i++)
+                {
+                    var jObjCollection = JObject.Parse(collections[i].ToString());
+                    collectionsListAsJObject.Add(jObjCollection);
+                }
+
+                x++;
+            }
+
+            return collectionsListAsJObject;
+        }
+
         /// <summary>
         /// Get every single product in afosto after migration.
         /// Collect product titles and conv. to list. > Returns a list of product titles
@@ -164,7 +186,7 @@ namespace TPMApi.Controllers
             {
                 List<string> afostoProductTitles = new List<string>();
 
-                var productCount = await LoadAfostoProdCount("/products/count", 1);
+                var productCount = await LoadAfostoCountData("/products/count", 1);
                 var pageCount = (int)Math.Ceiling((double)productCount / 50);
 
                 for (var i = 1; i <= pageCount;)
@@ -354,7 +376,7 @@ namespace TPMApi.Controllers
         /// <param name="location"></param>
         /// <param name="page"></param>
         /// <returns></returns>
-        private async Task<int> LoadAfostoProdCount(string location, int page)
+        private async Task<int> LoadAfostoCountData(string location, int page)
         {
             var reqAfostoData = await MigrationMiddelware.GetAfostoData(
                 AfostoDataProcessor.GetLastAccessToken(_sqlConn.ConnectionString)[0],

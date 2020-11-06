@@ -11,7 +11,7 @@ namespace TPMApi.Builder.Afosto
     public interface IAfostoProductBuilder : IAfostoWCRequirements
     {
         List<Images> SetImages();
-        JArray SetCollections();
+        List<Collections> SetCollections();
         List<Descriptors> SetDescriptors();
         Inventory SetInventory(Variation variation);
         Task<List<Items>> SetItems();
