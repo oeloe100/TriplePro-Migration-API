@@ -131,7 +131,6 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
         {
             Prices priceModel = new Prices()
             {
-                Price = Math.Round((price / 121) * 100 ?? 0, 2),
                 PriceGross = price,
                 IsEnabled = true,
                 TaxClass = TaxClass,

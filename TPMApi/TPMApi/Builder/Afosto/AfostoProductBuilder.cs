@@ -170,8 +170,8 @@ namespace TPMApi.Builder.Afosto
         {
             Prices price = new Prices()
             {
-                Price = variation.price,
-                PriceGross = AfostoProductBuildingHelpers.PriceGross(variation.price),
+                //Price = variation.price,
+                PriceGross = variation.price,
                 IsEnabled = true,
                 TaxClass = TaxClass,
                 Price_Group = AfostoProductRequirements[3]
