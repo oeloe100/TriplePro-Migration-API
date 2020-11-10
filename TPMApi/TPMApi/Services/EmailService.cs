@@ -10,7 +10,7 @@ namespace TPMApi.Services
         public void Send(string subject, string message, string email)
         {
             var mimeMessage = new MimeMessage();
-            mimeMessage.From.Add(MailboxAddress.Parse("tonraschenko@hotmail.com"));
+            mimeMessage.From.Add(MailboxAddress.Parse("service@triplepromigrationapi.nl"));
             mimeMessage.To.Add(MailboxAddress.Parse(subject));
             mimeMessage.Subject = message;
             mimeMessage.Body = new TextPart(TextFormat.Html)
@@ -19,8 +19,8 @@ namespace TPMApi.Services
             };
 
             using var smtp = new SmtpClient();
-            smtp.Connect("smtp.ethereal.email", 587, SecureSocketOptions.StartTls);
-            smtp.Authenticate("wilford.hagenes@ethereal.email", "fGtaxqCP8zc1HNjdsd");
+            smtp.Connect("smtp.vevida.com", 587, SecureSocketOptions.StartTls);
+            smtp.Authenticate("service@triplepromigrationapi.nl", "k$i0d(WEpF");
             smtp.Send(mimeMessage);
             smtp.Disconnect(true);
         }

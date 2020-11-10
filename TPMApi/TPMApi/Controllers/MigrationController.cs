@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -31,8 +32,10 @@ namespace TPMApi.Controllers
         private static IOptions<AuthorizationPoco> _config;
         private static ILogger<MigrationController> _logger;
         private static IWebHostEnvironment _env;
+        private static IEmailService _emailService;
         private static ISteigerhoutCustomOptionsBuilder _steigerhoutCustomOptionsBuilder;
         private static AfostoMigrationModelBuilder _wtaMapping;
+        private static UserManager<IdentityUser> _userManager;
 
         private static WooCommerceNET.WooCommerce.Legacy.WCObject _wcObjectLegacy;
         private static WCObject _wcObject;
@@ -47,12 +50,16 @@ namespace TPMApi.Controllers
         public MigrationController(
             IOptions<AuthorizationPoco> config,
             ILogger<MigrationController> logger,
-            IWebHostEnvironment env)
+            IWebHostEnvironment env,
+            IEmailService emailService,
+            UserManager<IdentityUser> userManager)
         {
             _config = config;
             _logger = logger;
             _env = env;
+            _emailService = emailService;
             _wtaMapping = new AfostoMigrationModelBuilder(config, logger);
+            _userManager = userManager;
             _usedIds = new List<long>();
 
             //Config string
@@ -116,7 +123,6 @@ namespace TPMApi.Controllers
                 }
 
                 await FailedMigrations();
-
                 return OnMigrationCompleted();
             }
             catch (Exception ex)
@@ -133,6 +139,8 @@ namespace TPMApi.Controllers
         /// <returns></returns>
         private async Task FailedMigrations()
         {
+            List<string> failedProdMigrationsByName = new List<string>();
+
             var productCount = await CorrectV3ProdCount();
             var pageCount = (int)Math.Ceiling((double)productCount / _pageSize);
 
@@ -146,11 +154,16 @@ namespace TPMApi.Controllers
                     if (afostoProdTitlesList.Contains(wooProducts[x].name) == false)
                     {
                         _logger.LogError(wooProducts[x].name);
+                        failedProdMigrationsByName.Add(wooProducts[x].name);
                     }
                 }
 
                 i++;
             }
+
+            var userInfo = await GetCurrentLoggedinUserInformation();
+            string messageBody = string.Join(",", failedProdMigrationsByName);
+            _emailService.Send(userInfo?.Email, "Migration Report", messageBody);
         }
 
         private async Task<List<JObject>> CategoriesToInclude()
@@ -386,6 +399,12 @@ namespace TPMApi.Controllers
             int count = Int32.Parse(convToJObject);
 
             return count;
+        }
+
+        private async Task<IdentityUser> GetCurrentLoggedinUserInformation()
+        {
+            var applicationUser = await _userManager.GetUserAsync(User);
+            return applicationUser;
         }
     }
 }

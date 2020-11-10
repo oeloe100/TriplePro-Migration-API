@@ -229,12 +229,15 @@ namespace TPMApi.Builder.Afosto
                             collectionsList, 
                             x);
                     }
-                    else { 
-                        CollectionsBuilder.DefaultCollectionsBuilder(
-                            AfostoProductRequirements[0],
-                            collectionsList);
-                    }
                 }
+            }
+
+            if (collectionsList == null || 
+                collectionsList.Count <= 0)
+            {
+                CollectionsBuilder.DefaultCollectionsBuilder(
+                    AfostoProductRequirements[0],
+                    collectionsList);
             }
 
             return collectionsList;
