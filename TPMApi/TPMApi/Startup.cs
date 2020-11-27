@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -66,17 +65,17 @@ namespace TPMApi
                 options.SignIn.RequireConfirmedEmail = false;
             });
 
-            /*services.AddCors(options =>
+            services.AddCors(options =>
             {
                 options.AddPolicy(name: "DefaultPolicy",
                     builder =>
                     {
-                        builder.WithOrigins("https://localhost:44338")
+                        builder.WithOrigins("https://www.triplepromigrationapi.nl")
                                 .AllowAnyHeader()
                                 .AllowAnyMethod()
                                 .AllowAnyOrigin();
                     });
-            });*/
+            });
 
             //For token based authentiation. Jwt authentication.
             //services.AddTokenAuthentication(Configuration);
@@ -110,7 +109,7 @@ namespace TPMApi
             app.UseCookiePolicy();
 
             app.UseRouting();
-            //app.UseCors(policyName: "DefaultPolicy");
+            app.UseCors(policyName: "DefaultPolicy");
 
             app.UseAuthentication();
             app.UseAuthorization();
