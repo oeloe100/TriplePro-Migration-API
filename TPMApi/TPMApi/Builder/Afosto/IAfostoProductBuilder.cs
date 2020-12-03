@@ -11,18 +11,23 @@ namespace TPMApi.Builder.Afosto
     public interface IAfostoProductBuilder : IAfostoWCRequirements
     {
         List<Images> SetImages();
-        List<Collections> SetCollections();
-        List<Descriptors> SetDescriptors();
+        List<Collections> SetCollections(IDictionary<string, bool> bundledAccessManger);
+        List<Descriptors> SetDescriptors(
+            IDictionary<string, bool> bundledAccessMangert,
+            string titlePrefix);
         Inventory SetInventory(Variation variation);
-        Task<List<Items>> SetItems();
+        Task<List<Items>> SetItems(string washingTitle);
         List<Options> SetOptions(Variation variation);
         List<Prices> SetPrices(Variation variation);
         Seo SetSeo();
-        List<Specifications> SetSpecifications();
+        List<Specifications> SetSpecifications(
+            IDictionary<string, bool> bundledAccessManger,
+            string washingTitle);
         Task<List<ProductCategory>> WooCategories();
         Task<List<Variation>> WooProdVariations();
         bool HasActiveCustoms(
             List<Items> items, 
-            List<Variation> variations);
+            List<Variation> variations,
+            string washingTitle);
     }
 }

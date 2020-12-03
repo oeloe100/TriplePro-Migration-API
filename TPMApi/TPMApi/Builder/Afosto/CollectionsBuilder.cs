@@ -57,5 +57,29 @@ namespace TPMApi.Builder.Afosto
 
             collectionsList.Add(collections);
         }
+
+        public static void BundledCollectionsBuilder(
+            JObject _wooCategoriesFromAfosto,
+            List<Collections> collectionsList)
+        {
+            List<Links> linkCollection = new List<Links>();
+            var link = _wooCategoriesFromAfosto["_links"][0];
+
+            Links links = new Links()
+            {
+                Rel = link["rel"].ToString(),
+                Href = link["href"].ToString()
+            };
+
+            linkCollection.Add(links);
+
+            var collections = new Collections()
+            {
+                Id = (int)_wooCategoriesFromAfosto["id"],
+                Links = linkCollection
+            };
+
+            collectionsList.Add(collections);
+        }
     }
 }

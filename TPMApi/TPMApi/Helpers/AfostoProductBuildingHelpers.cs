@@ -101,7 +101,7 @@ namespace TPMApi.Helpers
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>
-        public static string SKUGenerator(Product product, int? id)
+        public static string SKUGenerator(Product product, string washingTitle, int? id)
         {
             var stringBuilder = new StringBuilder();
             var words = product.name.Split(new char[] { '-', ' ' });
@@ -111,7 +111,7 @@ namespace TPMApi.Helpers
                 stringBuilder.Append(words[i]);
             }
 
-            return stringBuilder + id.ToString();
+            return (stringBuilder + washingTitle) + id.ToString();
         }
 
         public static decimal? PriceGross(decimal? price)

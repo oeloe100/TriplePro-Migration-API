@@ -23,7 +23,7 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
             {
                 if (_optionsList.Count < combination.Count)
                 {
-                    CustomKVPSorted(option);
+                    //CustomKVPSorted(option);
                     ExistingKVPSorted(option);
                 }
             }
@@ -50,9 +50,9 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
             }
         }
 
-        private void CustomKVPSorted(string option)
+        /*private void CustomKVPSorted(string option)
         {
-            /*var coatingChallange = SteigerhoutOptionsData.CoationgOptions().Where(a => a == option);
+            var coatingChallange = SteigerhoutOptionsData.CoationgOptions().Where(a => a == option);
             if (IsAny(coatingChallange))
             {
                 if (_optionsList[_optionsList.Count - 1].ContainsKey("coating") == false)
@@ -60,7 +60,7 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
                     ManageCustomOptionsList("coating", option);
                     return;
                 }
-            }*/
+            }
 
             var washingChallange = SteigerhoutOptionsData.WashingOptions().Where(a => a == option);
             if (IsAny(washingChallange))
@@ -68,7 +68,7 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
                 ManageCustomOptionsList("washing", option);
                 return;
             }
-        }
+        }*/
 
         private bool IsAny<T>(IEnumerable<T> data)
         {

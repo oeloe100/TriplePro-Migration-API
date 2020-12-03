@@ -38,7 +38,8 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
 
         public void BuildCustomOptions(
             List<Items> items,
-            List<Variation> variations)
+            List<Variation> variations,
+            string washingTitle)
         {
             Items = items;
 
@@ -50,7 +51,7 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
 
             var result = iGapCG.GAPCG(CombinationsList);
 
-            SetCustomItems(items, result, variations);
+            SetCustomItems(items, result, variations, washingTitle);
         }
 
         public void FillComboList(List<List<string>> CombinationsList)
@@ -68,13 +69,14 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
             }
 
             //CombinationsList.Add(SteigerhoutOptionsData.CoationgOptions());
-            CombinationsList.Add(SteigerhoutOptionsData.WashingOptions());
+            //CombinationsList.Add(SteigerhoutOptionsData.WashingOptions());
         }
 
         public void SetCustomItems(
             List<Items> itemsList,
             List<List<string>> result,
-            List<Variation> variations)
+            List<Variation> variations,
+            string washingTitle)
         {
             for (var i = 0; i < result.Count; i++)
             {
@@ -84,7 +86,7 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
                 var item = new Items()
                 {
                     Ean = AfostoProductBuildingHelpers.EAN13Sum(_usedIds),
-                    Sku = AfostoProductBuildingHelpers.SKUGenerator(Product, i),
+                    Sku = AfostoProductBuildingHelpers.SKUGenerator(Product, washingTitle, i),
                     Inventory = SetCustomInventory(0),
                     Options = BuildOptions(option),
                     Prices = SetCustomPrices(price),

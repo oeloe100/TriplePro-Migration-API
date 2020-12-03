@@ -8,14 +8,16 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
     {
         void BuildCustomOptions(
             List<Items> items,
-            List<Variation> variations);
+            List<Variation> variations,
+            string washingTitle);
 
         void FillComboList(List<List<string>> CombinationsList);
 
         void SetCustomItems(
             List<Items> itemsList,
             List<List<string>> result,
-            List<Variation> variations);
+            List<Variation> variations,
+            string washingTitle);
 
         Inventory SetCustomInventory(int total);
 

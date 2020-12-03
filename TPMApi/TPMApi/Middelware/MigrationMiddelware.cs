@@ -36,7 +36,6 @@ namespace TPMApi.Middelware
             int? productId)
         {
             _currentProductId = productId;
-
             await PostAfostoProductModel("/products", config, logger, accessToken, productsMapped);
         }
 

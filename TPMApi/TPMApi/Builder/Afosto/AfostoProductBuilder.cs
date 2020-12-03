@@ -65,16 +65,26 @@ namespace TPMApi.Builder.Afosto
         /// <param name="config"></param>
         /// <param name="metaGroups"></param>
         /// <returns></returns>
-        public List<Descriptors> SetDescriptors()
+        public List<Descriptors> SetDescriptors(
+            IDictionary<string, bool> bundledAccessManger,
+            string washingTitle)
         {
-            Descriptors descriptor = new Descriptors()
+            Descriptors descriptor = new Descriptors();
+
+            switch(bundledAccessManger["isParent"])
             {
-                Name = Product.name,
-                description = Product.description,
-                Short_Description = Product.short_description,
-                MetaGroup = AfostoProductRequirements[1],
-                Seo = SetSeo(),
-            };
+                case true:
+                    descriptor.Name = Product.name;
+                    break;
+                case false:
+                    descriptor.Name = ((Product.name + " ") + washingTitle);
+                    break;
+            }
+
+            descriptor.description = Product.description;
+            descriptor.Short_Description = Product.short_description;
+            descriptor.MetaGroup = AfostoProductRequirements[1];
+            descriptor.Seo = SetSeo();
 
             List<Descriptors> descriptors = new List<Descriptors>();
             descriptors.Add(descriptor);
@@ -113,11 +123,11 @@ namespace TPMApi.Builder.Afosto
         /// Items is the Afosto Term for Variations e.g. WooCommerce
         /// </summary>
         /// <returns></returns>
-        public async Task<List<Items>> SetItems()
+        public async Task<List<Items>> SetItems(string washingTitle)
         {
             var items = new List<Items>();
             var variations = await WooProdVariations();
-            var active = HasActiveCustoms(items, variations);
+            var active = HasActiveCustoms(items, variations, washingTitle);
 
             if (!active)
             {
@@ -131,7 +141,7 @@ namespace TPMApi.Builder.Afosto
                         var item = new Items()
                         {
                             Ean = AfostoProductBuildingHelpers.EAN13Sum(_usedIds),
-                            Sku = AfostoProductBuildingHelpers.SKUGenerator(Product, variations[i].id),
+                            Sku = AfostoProductBuildingHelpers.SKUGenerator(Product, washingTitle, variations[i].id),
                             Inventory = SetInventory(variations[i]),
                             Prices = SetPrices(variations[i]),
                             Options = SetOptions(variations[i]),
@@ -212,11 +222,29 @@ namespace TPMApi.Builder.Afosto
         /// </summary>
         /// <param name="collections"></param>
         /// <returns></returns>
-        public List<Collections> SetCollections()
+        public List<Collections> SetCollections(IDictionary<string, bool> bundledAccessManger)
         {
             List<Collections> collectionsList = new List<Collections>();
+
+            if (bundledAccessManger["isBundle"] || 
+                bundledAccessManger["isBundle"] == false && 
+                bundledAccessManger["isParent"])
+            { 
+                SetDefaultProductCollections(collectionsList);
+            }
+
+            if (bundledAccessManger["isBundle"] && bundledAccessManger["isParent"] == false)
+            {
+                SetBundleCollections(collectionsList);
+            }
+
+            return collectionsList;
+        }
+
+        private void SetDefaultProductCollections(List<Collections> collectionsList)
+        {
             var prodCategories = Product.categories;
-            
+
             for (var i = 0; i < prodCategories.Count; i++)
             {
                 var wooCatName = prodCategories[i].name;
@@ -225,22 +253,35 @@ namespace TPMApi.Builder.Afosto
                     if (_wooCategoriesFromAfosto[x]["name"].ToString() == wooCatName)
                     {
                         CollectionsBuilder.OriginalCollectionsBuilder(
-                            _wooCategoriesFromAfosto, 
-                            collectionsList, 
+                            _wooCategoriesFromAfosto,
+                            collectionsList,
                             x);
                     }
                 }
             }
 
-            if (collectionsList == null || 
+            if (collectionsList == null ||
                 collectionsList.Count <= 0)
             {
                 CollectionsBuilder.DefaultCollectionsBuilder(
                     AfostoProductRequirements[0],
                     collectionsList);
             }
+        }
 
-            return collectionsList;
+        private void SetBundleCollections(List<Collections> collectionsList)
+        {
+            collectionsList.Clear();
+
+            for (var x = 0; x < _wooCategoriesFromAfosto.Count; x++)
+            {
+                if (_wooCategoriesFromAfosto[x]["name"].ToString().ToLower() == SteigerhoutOptionsData.WashingTitle.ToLower())
+                {
+                    CollectionsBuilder.BundledCollectionsBuilder(
+                        _wooCategoriesFromAfosto[x],
+                        collectionsList);
+                }
+            }
         }
 
         public List<Images> SetImages()
@@ -264,7 +305,9 @@ namespace TPMApi.Builder.Afosto
         /// Product specs. for ex. size?
         /// </summary>
         /// <returns></returns>
-        public List<Specifications> SetSpecifications()
+        public List<Specifications> SetSpecifications(
+            IDictionary<string, bool> bundledAccessManger,
+            string washingTitle)
         {
             var specs = new List<Specifications>();
             var attributes = Product.attributes;
@@ -291,7 +334,45 @@ namespace TPMApi.Builder.Afosto
                 }
             }
 
+            WashingBundleSpecifications(specs, bundledAccessManger, washingTitle);
+
             return specs;
+        }
+
+        private void WashingBundleSpecifications(
+            List<Specifications> specs,
+            IDictionary<string, bool> bundledAccessManger,
+            string washingTitle)
+        {
+            var productLink = new Specifications();
+            var productMatch = new Specifications();
+
+            if (bundledAccessManger["isBundle"])
+            { 
+                switch(bundledAccessManger["isParent"])
+                {
+                    case true:
+                        { 
+                            productLink.Key = SteigerhoutOptionsData.WashingTitle;
+                            productLink.Value = "Parent";
+                            specs.Add(productLink);
+
+                            break;
+                        }
+                    case false:
+                        {
+                            productLink.Key = SteigerhoutOptionsData.WashingTitle;
+                            productLink.Value = washingTitle;
+                            specs.Add(productLink);
+
+                            break;
+                        }
+                }
+
+                productMatch.Key = "_MatchID_";
+                productMatch.Value = Product.id.ToString();
+                specs.Add(productMatch);
+            }
         }
 
         /// <summary>
@@ -330,11 +411,12 @@ namespace TPMApi.Builder.Afosto
 
         public bool HasActiveCustoms(
             List<Items> items, 
-            List<Variation> variations)
+            List<Variation> variations,
+            string washingTitle)
         {
             if (_steigerhoutCustomOptionsBuilder != null)
             {
-                _steigerhoutCustomOptionsBuilder.BuildCustomOptions(items, variations);
+                _steigerhoutCustomOptionsBuilder.BuildCustomOptions(items, variations, washingTitle);
                 return true;
             }
 

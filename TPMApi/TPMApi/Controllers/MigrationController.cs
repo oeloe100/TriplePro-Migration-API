@@ -86,8 +86,6 @@ namespace TPMApi.Controllers
         /// <returns></returns>
         public async Task<ContentResult> StartWTAMigration(List<string> specialsArray)
         {
-            //await FailedMigrations();
-
             try
             {
                 var productCount = await CorrectV3ProdCount();
@@ -110,10 +108,11 @@ namespace TPMApi.Controllers
                             await Requirements(), await GetTaxClass(), await CategoriesToInclude(),
                             _steigerhoutCustomOptionsBuilder, _config, wcProduct, _wcObject, imageResult, _usedIds);
 
-                        //Build the actual model we post to afosto
-                        var mappingData = await _wtaMapping.BuildAfostoMigrationModel(afostoProductBuilder);
+                        //Here we combine all the build product parts as one. Ready to POST to afosto.
+                        var mappingData = await _wtaMapping.BuildAfostoMigrationModel(
+                            afostoProductBuilder, BundledProductAccessHelper.SetAccess(false, true), null);
 
-                        //Post the model we build to Afosto as Json
+                        //POST the model we build to Afosto in Json format.
                         await MigrationMiddelware.BuildWTAMappingModel(
                             AfostoDataProcessor.GetLastAccessToken(_sqlConn.ConnectionString)[0],
                             mappingData, _config, _logger, wcProduct.id);
@@ -122,7 +121,9 @@ namespace TPMApi.Controllers
                     i++;
                 }
 
-                await FailedMigrations();
+                //Here we check for failed migrations and send an email afterwards.
+                await FailedMigrations(specialsArray);
+
                 return OnMigrationCompleted();
             }
             catch (Exception ex)
@@ -132,12 +133,92 @@ namespace TPMApi.Controllers
             }
         }
 
+        public async Task<ContentResult> StartWTAProductBundleMigration(List<string> specialsArray)
+        {
+            try
+            {
+                var productCount = await CorrectV3ProdCount();
+                var pageCount = (int)Math.Ceiling((double)productCount / _pageSize);
+
+                for (var i = 1; i <= pageCount;)
+                {
+                    foreach (var wcProduct in await GetWCProducts(i, _pageSize))
+                    {
+                        //First we check if we have included a customOption if so we create an instance.
+                        await IncludeCustomOptions(specialsArray, wcProduct);
+
+                        //We first upload the images to afosto. Then we use the given ID to connect product to image.
+                        var imageResult = await MigrationMiddelware.UploadImageToAfosto(
+                                AfostoDataProcessor.GetLastAccessToken(_sqlConn.ConnectionString)[0],
+                                _logger, wcProduct.images);
+
+                        /*---------- **HERE WE BUILD THE PARENT PRODUCT** ----------*/
+
+                        IAfostoProductBuilder afostoProductBuilder = new AfostoProductBuilder(
+                            await Requirements(), await GetTaxClass(), await CategoriesToInclude(),
+                            _steigerhoutCustomOptionsBuilder, _config, wcProduct, _wcObject, imageResult, _usedIds);
+
+                        var mappingData = await _wtaMapping.BuildAfostoMigrationModel(
+                            afostoProductBuilder, BundledProductAccessHelper.SetAccess(true, true), null);
+
+                        await MigrationMiddelware.BuildWTAMappingModel(
+                            AfostoDataProcessor.GetLastAccessToken(_sqlConn.ConnectionString)[0],
+                            mappingData, _config, _logger, wcProduct.id);
+
+                        /*---------- HERE WE BUILD THE BUNDLED PRODUCT(s) ----------*/
+
+                        await BuildSteigerhoutProductBundle(specialsArray, wcProduct, imageResult);
+                    }
+
+                    i++;
+                }
+
+                //No Check for failed migrations in Bundle function (Yet)
+
+                return OnMigrationCompleted();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message + ex.StackTrace);
+                return OnMigrationFailed(ex);
+            }
+        }
+
+        private async Task BuildSteigerhoutProductBundle(
+            List<string> includedOptions, 
+            Product wcProduct, 
+            List<AfostoImageModelAfterUpload> imageResult)
+        {
+            foreach (var option in includedOptions)
+            { 
+                if (option.ToLower().Equals("steigerhout"))
+                {
+                    foreach (var washingTitle in SteigerhoutOptionsData.WashingOptions())
+                    {
+                        //We build the afosto product model;
+                        IAfostoProductBuilder afostoProductBuilder = new AfostoProductBuilder(
+                            await Requirements(), await GetTaxClass(), await CategoriesToInclude(),
+                            _steigerhoutCustomOptionsBuilder, _config, wcProduct, _wcObject, imageResult, _usedIds);
+
+                        //Build the actual model we post to afosto
+                        var mappingData = await _wtaMapping.BuildAfostoMigrationModel(
+                            afostoProductBuilder, BundledProductAccessHelper.SetAccess(true, false), washingTitle);
+
+                        //Post the model we build to Afosto as Json
+                        await MigrationMiddelware.BuildWTAMappingModel(
+                            AfostoDataProcessor.GetLastAccessToken(_sqlConn.ConnectionString)[0],
+                            mappingData, _config, _logger, wcProduct.id);
+                    }
+                }
+            }
+        }
+
         /// <summary>
         /// Check if afosto prod. titles list contains products (published and concept).
         /// If list does not contain title. We log this as a failed migration. Prod. is probably too large or incomplete.
         /// </summary>
         /// <returns></returns>
-        private async Task FailedMigrations()
+        private async Task FailedMigrations(List<string> includedOptions)
         {
             List<string> failedProdMigrationsByName = new List<string>();
 

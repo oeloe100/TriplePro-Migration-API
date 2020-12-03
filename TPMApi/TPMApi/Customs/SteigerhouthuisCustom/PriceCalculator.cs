@@ -22,7 +22,7 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
             {
                 (decimal)GetBasePrice(optionList, variations),
                 //GetCoatingPrice(optionList),
-                GetWashingPrice(optionList)
+                //GetWashingPrice(optionList)
             };
 
             var totalPrice = CalculatePrice(priceList);
@@ -80,7 +80,7 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
             return null;
         }
 
-        private decimal GetWashingPrice(List<Dictionary<string, string>> optionList)
+        /*private decimal GetWashingPrice(List<Dictionary<string, string>> optionList)
         {
             foreach (var dict in optionList)
             {
@@ -100,7 +100,7 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
             }
 
             return 0;
-        }
+        }*/
 
         /*private decimal GetCoatingPrice(List<Dictionary<string, string>> optionList)
         {

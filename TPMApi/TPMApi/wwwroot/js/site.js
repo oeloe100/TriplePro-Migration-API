@@ -8,7 +8,6 @@ var specialReqArray = [];
 $(function () {
     LoadPartialView();
     TooltipManager();
-    FaaManager();
 
     setTimeout(function () {
         PopUp();
@@ -30,6 +29,7 @@ $(".modal-close").on("click", function () {
 });
 
 $(".modal-save").on("click", function () {
+    specialReqArray = [];
     var customs = $(".customs-form").find("#customsSelect");
 
     $(customs).each(function (index, value) {
@@ -72,16 +72,40 @@ $(".woo-form-authorize").on("click", function () {
 });
 
 $(".faa-click").on("click", function () {
-    $.ajax({
-        type: 'POST',
-        url: '/Migration/StartWTAMigration',
-        traditional: true,
-        data: { "specialsArray" : specialReqArray },
-    }).done(function (result) {
-        $(".sync-process-box").html(result);
+    var bundled = $("#bundled").prop("checked");
+
+    $(specialReqArray).each(function (index, value) {
+        if (bundled && value.toLowerCase() != "choose") {
+            FaaManager();
+
+            $.ajax({
+                type: 'POST',
+                url: '/Migration/StartWTAProductBundleMigration',
+                traditional: true,
+                data: { "specialsArray": specialReqArray },
+            }).done(function (result) {
+                $(".sync-process-box").html(result);
+            });
+        }
+
+        if (bundled == false) {
+            FaaManager();
+
+            $.ajax({
+                type: 'POST',
+                url: '/Migration/StartWTAMigration',
+                traditional: true,
+                data: { "specialsArray": specialReqArray },
+            }).done(function (result) {
+                $(".sync-process-box").html(result);
+            });
+        }
+
+        if (bundled && value.toLowerCase() == "choose") {
+            alert("Please select a customs");
+        }
     });
 });
-
 
 //load partial view(s)
 function LoadPartialView() {
@@ -97,14 +121,12 @@ function LoadPartialView() {
 
 //manage faa state on click
 function FaaManager() {
-    $(".faa-click").on("click", function () {
-        if (!$(".fa-sync").hasClass("fa-spin")) {
-            $(".fa-sync").addClass("fa-spin");
-        }
-        else if ($(".fa-sync").hasClass("fa-spin")) {
-            $(".fa-sync").removeClass("fa-spin");
-        }
-    });
+    if (!$(".fa-sync").hasClass("fa-spin")) {
+        $(".fa-sync").addClass("fa-spin");
+    }
+    else if ($(".fa-sync").hasClass("fa-spin")) {
+        $(".fa-sync").removeClass("fa-spin");
+    }
 }
 
 //simple tooltip
