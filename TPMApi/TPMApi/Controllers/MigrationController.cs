@@ -10,7 +10,6 @@ using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using TPMApi.Builder.Afosto;
@@ -84,7 +83,8 @@ namespace TPMApi.Controllers
         /// Start WooCommerce to Afosto migration process.
         /// </summary>
         /// <returns></returns>
-        public async Task<ContentResult> StartWTAMigration(List<string> specialsArray)
+        public async Task<ContentResult> StartWTAMigration(
+            List<string> specialsArray)
         {
             try
             {
@@ -100,20 +100,19 @@ namespace TPMApi.Controllers
 
                         //We first upload the images to afosto. Then we use the given ID to connect product to image.
                         var imageResult = await MigrationMiddelware.UploadImageToAfosto(
-                                AfostoDataProcessor.GetLastAccessToken(_sqlConn.ConnectionString)[0],
-                                _logger, wcProduct.images);
+                            AfostoDataProcessor.GetLastAccessToken(_sqlConn.ConnectionString)[0], _logger, wcProduct.images);
 
                         //We build the afosto product model;
                         IAfostoProductBuilder afostoProductBuilder = new AfostoProductBuilder(
                             await Requirements(), await GetTaxClass(), await CategoriesToInclude(),
-                            _steigerhoutCustomOptionsBuilder, _config, wcProduct, _wcObject, imageResult, _usedIds);
+                            _steigerhoutCustomOptionsBuilder, _config, wcProduct, _wcObject, imageResult, _usedIds,
+                            BundledProductAccessHelper.SetAccess(false, true), null);
 
                         //Here we combine all the build product parts as one. Ready to POST to afosto.
-                        var mappingData = await _wtaMapping.BuildAfostoMigrationModel(
-                            afostoProductBuilder, BundledProductAccessHelper.SetAccess(false, true), null);
+                        var mappingData = await _wtaMapping.BuildAfostoMigrationModel(afostoProductBuilder);
 
                         //POST the model we build to Afosto in Json format.
-                        await MigrationMiddelware.BuildWTAMappingModel(
+                        await MigrationMiddelware.PostToAfosto(
                             AfostoDataProcessor.GetLastAccessToken(_sqlConn.ConnectionString)[0],
                             mappingData, _config, _logger, wcProduct.id);
                     }
@@ -133,7 +132,8 @@ namespace TPMApi.Controllers
             }
         }
 
-        public async Task<ContentResult> StartWTAProductBundleMigration(List<string> specialsArray)
+        public async Task<ContentResult> StartWTAProductBundleMigration(
+            List<string> specialsArray)
         {
             try
             {
@@ -149,19 +149,18 @@ namespace TPMApi.Controllers
 
                         //We first upload the images to afosto. Then we use the given ID to connect product to image.
                         var imageResult = await MigrationMiddelware.UploadImageToAfosto(
-                                AfostoDataProcessor.GetLastAccessToken(_sqlConn.ConnectionString)[0],
-                                _logger, wcProduct.images);
+                            AfostoDataProcessor.GetLastAccessToken(_sqlConn.ConnectionString)[0], _logger, wcProduct.images);
 
                         /*---------- **HERE WE BUILD THE PARENT PRODUCT** ----------*/
 
                         IAfostoProductBuilder afostoProductBuilder = new AfostoProductBuilder(
                             await Requirements(), await GetTaxClass(), await CategoriesToInclude(),
-                            _steigerhoutCustomOptionsBuilder, _config, wcProduct, _wcObject, imageResult, _usedIds);
+                            _steigerhoutCustomOptionsBuilder, _config, wcProduct, _wcObject, imageResult, _usedIds,
+                            BundledProductAccessHelper.SetAccess(true, true), null);
 
-                        var mappingData = await _wtaMapping.BuildAfostoMigrationModel(
-                            afostoProductBuilder, BundledProductAccessHelper.SetAccess(true, true), null);
+                        var mappingData = await _wtaMapping.BuildAfostoMigrationModel(afostoProductBuilder);
 
-                        await MigrationMiddelware.BuildWTAMappingModel(
+                        await MigrationMiddelware.PostToAfosto(
                             AfostoDataProcessor.GetLastAccessToken(_sqlConn.ConnectionString)[0],
                             mappingData, _config, _logger, wcProduct.id);
 
@@ -185,27 +184,27 @@ namespace TPMApi.Controllers
         }
 
         private async Task BuildSteigerhoutProductBundle(
-            List<string> includedOptions, 
-            Product wcProduct, 
+            List<string> includedOptions,
+            Product wcProduct,
             List<AfostoImageModelAfterUpload> imageResult)
         {
             foreach (var option in includedOptions)
-            { 
+            {
                 if (option.ToLower().Equals("steigerhout"))
                 {
-                    foreach (var washingTitle in SteigerhoutOptionsData.WashingOptions())
+                    foreach (var bundleAttributeName in SteigerhoutOptionsData.WashingOptions())
                     {
                         //We build the afosto product model;
                         IAfostoProductBuilder afostoProductBuilder = new AfostoProductBuilder(
                             await Requirements(), await GetTaxClass(), await CategoriesToInclude(),
-                            _steigerhoutCustomOptionsBuilder, _config, wcProduct, _wcObject, imageResult, _usedIds);
+                            _steigerhoutCustomOptionsBuilder, _config, wcProduct, _wcObject, imageResult, _usedIds,
+                            BundledProductAccessHelper.SetAccess(true, false), bundleAttributeName);
 
                         //Build the actual model we post to afosto
-                        var mappingData = await _wtaMapping.BuildAfostoMigrationModel(
-                            afostoProductBuilder, BundledProductAccessHelper.SetAccess(true, false), washingTitle);
+                        var mappingData = await _wtaMapping.BuildAfostoMigrationModel(afostoProductBuilder);
 
                         //Post the model we build to Afosto as Json
-                        await MigrationMiddelware.BuildWTAMappingModel(
+                        await MigrationMiddelware.PostToAfosto(
                             AfostoDataProcessor.GetLastAccessToken(_sqlConn.ConnectionString)[0],
                             mappingData, _config, _logger, wcProduct.id);
                     }

@@ -7,6 +7,7 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
     {
         decimal? Price(
             List<Dictionary<string, string>> optionList,
-            List<Variation> variations);
+            List<Variation> variations,
+            IDictionary<string, bool> bundledAccessManger);
     }
 }

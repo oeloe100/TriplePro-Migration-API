@@ -15,14 +15,15 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
 
         public decimal? Price(
             List<Dictionary<string, string>> optionList, 
-            List<Variation> variations)
+            List<Variation> variations,
+            IDictionary<string, bool> bundledAccessManger)
         {
 
             var priceList = new List<decimal>()
             {
                 (decimal)GetBasePrice(optionList, variations),
                 //GetCoatingPrice(optionList),
-                //GetWashingPrice(optionList)
+                GetWashingPrice(optionList, bundledAccessManger)
             };
 
             var totalPrice = CalculatePrice(priceList);
@@ -80,27 +81,22 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
             return null;
         }
 
-        /*private decimal GetWashingPrice(List<Dictionary<string, string>> optionList)
+        private decimal GetWashingPrice(
+            List<Dictionary<string, string>> optionList,
+            IDictionary<string, bool> bundledAccessManger)
         {
-            foreach (var dict in optionList)
+            if (bundledAccessManger["isBundle"] && 
+                !bundledAccessManger["isParent"])
             {
-                foreach (var value in dict.Values)
-                {
-                    var test = SteigerhoutOptionsData.WashingOptions().Where(x => x == value);
-                    if (IsAny(test) && 
-                        value.ToLower().Equals("geen") == false)
-                    {
-                        if (IsSpecialCategory("Loungebanken") ||
-                            IsSpecialCategory("Kasten"))
-                            return 40;
+                if (IsSpecialCategory("Loungebanken") ||
+                    IsSpecialCategory("Kasten"))
+                    return 40;
 
-                        return 20;
-                    }
-                }
+                return 20;
             }
 
             return 0;
-        }*/
+        }
 
         /*private decimal GetCoatingPrice(List<Dictionary<string, string>> optionList)
         {

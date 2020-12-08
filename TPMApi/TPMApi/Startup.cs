@@ -84,6 +84,7 @@ namespace TPMApi
             services.AddAuthentication();
 
             services.AddControllersWithViews();
+
             services.AddRazorPages();
             services.AddHttpContextAccessor();
         }

@@ -39,7 +39,8 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
         public void BuildCustomOptions(
             List<Items> items,
             List<Variation> variations,
-            string washingTitle)
+            string washingTitle,
+            IDictionary<string, bool> bundledAccessManger)
         {
             Items = items;
 
@@ -51,7 +52,7 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
 
             var result = iGapCG.GAPCG(CombinationsList);
 
-            SetCustomItems(items, result, variations, washingTitle);
+            SetCustomItems(items, result, variations, washingTitle, bundledAccessManger);
         }
 
         public void FillComboList(List<List<string>> CombinationsList)
@@ -76,12 +77,13 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
             List<Items> itemsList,
             List<List<string>> result,
             List<Variation> variations,
-            string washingTitle)
+            string washingTitle,
+            IDictionary<string, bool> bundledAccessManger)
         {
             for (var i = 0; i < result.Count; i++)
             {
                 var option = _sortKVP.SortKeyValuePairByOrigin(result[i]);
-                var price = _priceCalculator.Price(option, variations);
+                var price = _priceCalculator.Price(option, variations, bundledAccessManger);
 
                 var item = new Items()
                 {

@@ -34,6 +34,9 @@ namespace TPMApi.Builder.Afosto
         private List<JObject> _wooCategoriesFromAfosto;
         private List<long> _usedIds;
 
+        private IDictionary<string, bool> _bundledAccessManger;
+        private string _bundleAttributeName;
+
         public AfostoProductBuilder(
             List<JArray> afostoProductRequirements,
             JToken taxClass,
@@ -43,7 +46,9 @@ namespace TPMApi.Builder.Afosto
             Product product,
             WCObject wcObject,
             List<AfostoImageModelAfterUpload> imageResult,
-            List<long> usedIds)
+            List<long> usedIds,
+            IDictionary<string, bool> bundledAccessManger,
+            string bundleAttributeName)
         {
             AfostoProductRequirements = afostoProductRequirements;
             _steigerhoutCustomOptionsBuilder = steigerhoutCustomOptionsBuilder;
@@ -54,6 +59,8 @@ namespace TPMApi.Builder.Afosto
             WCObject = wcObject;
             ImageResult = imageResult;
             _usedIds = usedIds;
+            _bundledAccessManger = bundledAccessManger;
+            _bundleAttributeName = bundleAttributeName;
         }
 
         /*--------------- DESCRIPTORS ---------------*/
@@ -65,19 +72,17 @@ namespace TPMApi.Builder.Afosto
         /// <param name="config"></param>
         /// <param name="metaGroups"></param>
         /// <returns></returns>
-        public List<Descriptors> SetDescriptors(
-            IDictionary<string, bool> bundledAccessManger,
-            string washingTitle)
+        public List<Descriptors> SetDescriptors()
         {
             Descriptors descriptor = new Descriptors();
 
-            switch(bundledAccessManger["isParent"])
+            switch(_bundledAccessManger["isParent"])
             {
                 case true:
                     descriptor.Name = Product.name;
                     break;
                 case false:
-                    descriptor.Name = ((Product.name + " ") + washingTitle);
+                    descriptor.Name = ((Product.name + " ") + _bundleAttributeName);
                     break;
             }
 
@@ -123,11 +128,11 @@ namespace TPMApi.Builder.Afosto
         /// Items is the Afosto Term for Variations e.g. WooCommerce
         /// </summary>
         /// <returns></returns>
-        public async Task<List<Items>> SetItems(string washingTitle)
+        public async Task<List<Items>> SetItems()
         {
             var items = new List<Items>();
             var variations = await WooProdVariations();
-            var active = HasActiveCustoms(items, variations, washingTitle);
+            var active = HasActiveCustoms(items, variations);
 
             if (!active)
             {
@@ -141,7 +146,7 @@ namespace TPMApi.Builder.Afosto
                         var item = new Items()
                         {
                             Ean = AfostoProductBuildingHelpers.EAN13Sum(_usedIds),
-                            Sku = AfostoProductBuildingHelpers.SKUGenerator(Product, washingTitle, variations[i].id),
+                            Sku = AfostoProductBuildingHelpers.SKUGenerator(Product, _bundleAttributeName, variations[i].id),
                             Inventory = SetInventory(variations[i]),
                             Prices = SetPrices(variations[i]),
                             Options = SetOptions(variations[i]),
@@ -222,18 +227,18 @@ namespace TPMApi.Builder.Afosto
         /// </summary>
         /// <param name="collections"></param>
         /// <returns></returns>
-        public List<Collections> SetCollections(IDictionary<string, bool> bundledAccessManger)
+        public List<Collections> SetCollections()
         {
             List<Collections> collectionsList = new List<Collections>();
 
-            if (bundledAccessManger["isBundle"] || 
-                bundledAccessManger["isBundle"] == false && 
-                bundledAccessManger["isParent"])
+            if (_bundledAccessManger["isBundle"] ||
+                _bundledAccessManger["isBundle"] == false &&
+                _bundledAccessManger["isParent"])
             { 
                 SetDefaultProductCollections(collectionsList);
             }
 
-            if (bundledAccessManger["isBundle"] && bundledAccessManger["isParent"] == false)
+            if (_bundledAccessManger["isBundle"] && _bundledAccessManger["isParent"] == false)
             {
                 SetBundleCollections(collectionsList);
             }
@@ -305,9 +310,7 @@ namespace TPMApi.Builder.Afosto
         /// Product specs. for ex. size?
         /// </summary>
         /// <returns></returns>
-        public List<Specifications> SetSpecifications(
-            IDictionary<string, bool> bundledAccessManger,
-            string washingTitle)
+        public List<Specifications> SetSpecifications()
         {
             var specs = new List<Specifications>();
             var attributes = Product.attributes;
@@ -334,22 +337,19 @@ namespace TPMApi.Builder.Afosto
                 }
             }
 
-            WashingBundleSpecifications(specs, bundledAccessManger, washingTitle);
+            WashingBundleSpecifications(specs);
 
             return specs;
         }
 
-        private void WashingBundleSpecifications(
-            List<Specifications> specs,
-            IDictionary<string, bool> bundledAccessManger,
-            string washingTitle)
+        private void WashingBundleSpecifications(List<Specifications> specs)
         {
             var productLink = new Specifications();
             var productMatch = new Specifications();
 
-            if (bundledAccessManger["isBundle"])
+            if (_bundledAccessManger["isBundle"])
             { 
-                switch(bundledAccessManger["isParent"])
+                switch(_bundledAccessManger["isParent"])
                 {
                     case true:
                         { 
@@ -362,7 +362,7 @@ namespace TPMApi.Builder.Afosto
                     case false:
                         {
                             productLink.Key = SteigerhoutOptionsData.WashingTitle;
-                            productLink.Value = washingTitle;
+                            productLink.Value = _bundleAttributeName;
                             specs.Add(productLink);
 
                             break;
@@ -411,12 +411,13 @@ namespace TPMApi.Builder.Afosto
 
         public bool HasActiveCustoms(
             List<Items> items, 
-            List<Variation> variations,
-            string washingTitle)
+            List<Variation> variations)
         {
             if (_steigerhoutCustomOptionsBuilder != null)
             {
-                _steigerhoutCustomOptionsBuilder.BuildCustomOptions(items, variations, washingTitle);
+                _steigerhoutCustomOptionsBuilder.BuildCustomOptions(
+                    items, variations, _bundleAttributeName, _bundledAccessManger);
+
                 return true;
             }
 

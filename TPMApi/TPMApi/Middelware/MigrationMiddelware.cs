@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -11,7 +10,6 @@ using System.Threading.Tasks;
 using TPMApi.Clients;
 using TPMApi.Controllers;
 using TPMApi.Models;
-using WooCommerceNET;
 using WooCommerceNET.WooCommerce.v3;
 using MediaTypeHeaderValue = System.Net.Http.Headers.MediaTypeHeaderValue;
 
@@ -19,6 +17,10 @@ namespace TPMApi.Middelware
 {
     public class MigrationMiddelware
     {
+        private static string _accessToken;
+        private static JObject _productsMapped;
+        private static IOptions<AuthorizationPoco> _config;
+        private static ILogger<MigrationController> _logger;
         private static int? _currentProductId;
 
         /// <summary>
@@ -28,15 +30,20 @@ namespace TPMApi.Middelware
         /// <param name="config"></param>
         /// <param name="afostoAuthenticationData"></param>
         /// <returns></returns>
-        public static async Task BuildWTAMappingModel(
+        public static async Task PostToAfosto(
             string accessToken,
             JObject productsMapped,
             IOptions<AuthorizationPoco> config,
             ILogger<MigrationController> logger,
             int? productId)
         {
+            _accessToken = accessToken;
+            _productsMapped = productsMapped;
+            _config = config;
+            _logger = logger;
             _currentProductId = productId;
-            await PostAfostoProductModel("/products", config, logger, accessToken, productsMapped);
+
+            await PostAfostoProductModel("/products");
         }
 
         /// <summary>
@@ -47,16 +54,11 @@ namespace TPMApi.Middelware
         /// <param name="afostoAccessPoco"></param>
         /// <param name="data"></param>
         /// <returns></returns>
-        private static async Task PostAfostoProductModel(
-            string path,
-            IOptions<AuthorizationPoco> config,
-            ILogger<MigrationController> logger,
-            string accessToken,
-            JObject data)
+        private static async Task PostAfostoProductModel(string path)
         {
-            var apiClient = new AfostoHttpClient(accessToken, 1);
-            var requestUriString = string.Format("{0}{1}", config.Value.ApiServerUrl, path);
-            var content = new StringContent(JsonConvert.SerializeObject(data));
+            var apiClient = new AfostoHttpClient(_accessToken, 1);
+            var requestUriString = string.Format("{0}{1}", _config.Value.ApiServerUrl, path);
+            var content = new StringContent(JsonConvert.SerializeObject(_productsMapped));
 
             try
             {
@@ -64,18 +66,18 @@ namespace TPMApi.Middelware
                 if (!result.IsSuccessStatusCode)
                 {
                     string body = await result.Content.ReadAsStringAsync();
-                    logger.LogInformation("Fail with ID: " + _currentProductId);
+                    _logger.LogInformation("Fail with ID: " + _currentProductId);
 
-                    logger.LogError(body);
+                    _logger.LogError(body);
                 }
             }
             catch (Exception ex)
             {
-                logger.LogCritical(ex.Message);
-                logger.LogCritical(ex.StackTrace);
+                _logger.LogCritical(ex.Message);
+                _logger.LogCritical(ex.StackTrace);
             }
 
-            logger.LogInformation("Current: " + _currentProductId + " > Next > ");
+            _logger.LogInformation("Current: " + _currentProductId + " > Next > ");
         }
 
         /// <summary>
@@ -117,12 +119,12 @@ namespace TPMApi.Middelware
 
             List<AfostoImageModelAfterUpload> imageList = new List<AfostoImageModelAfterUpload>();
 
-            for (var i = 0; i < imageObjectList.Count; i++) 
+            for (var i = 0; i < imageObjectList.Count; i++)
             {
                 var imgObject = apiClient.AfostoClient.GetAsync(imageObjectList[i].src).Result;
 
                 if (imgObject.IsSuccessStatusCode)
-                { 
+                {
                     byte[] imageBytes = await apiClient.AfostoClient.GetByteArrayAsync(imageObjectList[i].src);
 
                     var fileContent = new ByteArrayContent(imageBytes);

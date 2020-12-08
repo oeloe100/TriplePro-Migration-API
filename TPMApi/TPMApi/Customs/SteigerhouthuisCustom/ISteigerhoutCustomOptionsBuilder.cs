@@ -9,7 +9,8 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
         void BuildCustomOptions(
             List<Items> items,
             List<Variation> variations,
-            string washingTitle);
+            string washingTitle,
+            IDictionary<string, bool> bundledAccessManger);
 
         void FillComboList(List<List<string>> CombinationsList);
 
@@ -17,7 +18,8 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
             List<Items> itemsList,
             List<List<string>> result,
             List<Variation> variations,
-            string washingTitle);
+            string washingTitle,
+            IDictionary<string, bool> bundledAccessManger);
 
         Inventory SetCustomInventory(int total);
 
