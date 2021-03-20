@@ -31,6 +31,8 @@ namespace TPMApi
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
+            services.ConfigureApplicationCookie(options => options.Cookie.IsEssential = true);
+
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(
                     Configuration.GetConnectionString("TPMAConnection")));

@@ -62,8 +62,9 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
                 if (attr.variation == true &&
                     attr.visible == false &&
                     attr.name.ToLower() != "afwerkingen" &&
-                    attr.name.ToLower() != "afwerkingen blad" &&
-                    attr.name.ToLower() != "Lange kant boomstam/recht")
+                    attr.name.ToLower() != "afwerking" &&
+                    attr.name.ToLower() != "all weather kussens" &&
+                    attr.name.ToLower() != "kleur kussens")
                 {
                     CombinationsList.Add(attr.options.ToList());
                 }

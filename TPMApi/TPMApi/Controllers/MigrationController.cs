@@ -41,7 +41,7 @@ namespace TPMApi.Controllers
         private static RestAPI _wcRestAPI;
         private static WooAccessModel _wooAccessModel;
 
-        private static readonly int _pageSize = 100;
+        private static readonly int _pageSize = 20;
         private static List<long> _usedIds;
 
         private static SqlConnection _sqlConn;
@@ -140,7 +140,7 @@ namespace TPMApi.Controllers
                 var productCount = await CorrectV3ProdCount();
                 var pageCount = (int)Math.Ceiling((double)productCount / _pageSize);
 
-                for (var i = 1; i <= pageCount;)
+                for (var i = 3; i <= pageCount;)
                 {
                     foreach (var wcProduct in await GetWCProducts(i, _pageSize))
                     {

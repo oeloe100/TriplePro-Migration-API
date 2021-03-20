@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using WooCommerceNET.WooCommerce.v3;
 
@@ -7,6 +8,7 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
     public class PriceCalculator : IPriceCalculator<List<Dictionary<string, string>>>
     {
         private Product _product;
+        private int hitCount = 0;
 
         public PriceCalculator(Product product)
         {
@@ -18,6 +20,7 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
             List<Variation> variations,
             IDictionary<string, bool> bundledAccessManger)
         {
+            Filter(optionList);
 
             var priceList = new List<decimal>()
             {
@@ -46,23 +49,98 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
             List<Dictionary<string, string>> optionList, 
             List<Variation> variations)
         {
-            foreach (var dict in optionList)
+            if (variations.Count > 1)
             {
-                foreach (var value in dict.Values)
+                for (var x = 0; x < variations.Count; x++)
                 {
-                    var basePrice = SetPrice(variations, value);
-                    if (basePrice.HasValue)
+                    if (variations[x].attributes.Count == optionList.Count)
                     {
-                        return basePrice;
+                        var price = GetPrice(optionList, variations, x);
+                        if (price != -1)
+                            return price;
+                    }
+                    else
+                    {
+                        foreach (var dict in optionList)
+                        {
+                            foreach (var value in dict.Values)
+                            {
+                                var basePrice = SetPrice(variations, value);
+                                if (basePrice.HasValue)
+                                {
+                                    return basePrice;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (variations.Count <= 1)
+            {
+                foreach (var variation in variations)
+                {
+                    return variation.price;
+                }
+            }
+
+            return 0;
+        }
+
+        private decimal GetPrice(
+            List<Dictionary<string, string>> optionList,
+            List<Variation> variations,
+            int x)
+        {
+            hitCount = 0;
+
+            for (var i = 0; i < variations[x].attributes.Count; i++)
+            {
+                var value = GetValue(optionList, variations[x], i);
+                if (!value.Equals(default(KeyValuePair<string, string>)))
+                {
+                    hitCount++;
+                    if (hitCount == optionList.Count)
+                    {
+                        var price = variations[x].price;
+                        return (decimal)price;
                     }
 
-                    return 0;
+                    continue;
+                }
+            }
+
+            return -1;
+        }
+
+        private KeyValuePair<string, string> GetValue(
+            List<Dictionary<string, string>> optionList,
+            Variation variation,
+            int i)
+        {
+            var value = optionList[i].FirstOrDefault(x => x.Value == variation.attributes[i].option);
+            return value;
+        }
+
+        private decimal? SetPrice(
+            List<Variation> variations,
+            string value)
+        {
+            foreach (var variation in variations)
+            {
+                foreach (var attribute in variation.attributes)
+                {
+                    if (attribute.option.Equals(value))
+                    {
+                        return variation.price;
+                    }
                 }
             }
 
             return null;
         }
 
+        /*
         private decimal? SetPrice(
             List<Variation> variations, 
             string value)
@@ -80,10 +158,11 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
 
             return null;
         }
+        */
 
         private decimal GetWashingPrice(
-            List<Dictionary<string, string>> optionList,
-            IDictionary<string, bool> bundledAccessManger)
+        List<Dictionary<string, string>> optionList,
+        IDictionary<string, bool> bundledAccessManger)
         {
             if (bundledAccessManger["isBundle"] && 
                 !bundledAccessManger["isParent"])
@@ -133,6 +212,20 @@ namespace TPMApi.Customs.SteigerhouthuisCustom
         private bool IsAny<T>(IEnumerable<T> data)
         {
             return data != null && data.Any();
+        }
+
+        private void Filter(List<Dictionary<string, string>> optionList)
+        {
+            foreach (var option in optionList)
+            {
+                foreach (var key in option.Keys)
+                { 
+                    if (key.ToLower() == "afwerkingen blad/zitting")
+                    {
+                        optionList.Remove(option);
+                    }
+                }
+            }
         }
     }
 }
